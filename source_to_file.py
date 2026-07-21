@@ -12,7 +12,7 @@ def source(n): # one list/vector with 10 dimensions from dirichlet distribution
 
 number_of_lists = 12
 
-with open("samples.csv", "w", newline="") as file:
+with open("source_samples.csv", "w", newline="") as file:
 
     writer = csv.writer(file)
 
