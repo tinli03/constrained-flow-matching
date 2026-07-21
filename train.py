@@ -1,6 +1,7 @@
 # runs the training and calls model and data
 import torch
 import argparse
+import numpy as np
 
 from model import FlowNetwork
 from data import n_dims # rose skriv in från datan
@@ -26,10 +27,16 @@ def train(args, model, optimizer):
         optimizer.zero_grad()                                      
         loss.backward()                                              
         optimizer.step()  
-
+    
+def set_seed(seed):
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 if __name__ == "__main__":
     args = parse_args()
+    set_seed(args.rmseed)
     model = FlowNetwork(args, n_dims)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     train(args, model, optimizer)

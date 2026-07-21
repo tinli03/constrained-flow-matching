@@ -18,3 +18,4 @@ class FlowNetwork(nn.Module):
         inp = torch.cat([xt, t.unsqueeze(1)], dim=1)
         return self.net(inp)
 
+
