@@ -10,13 +10,13 @@ def source(n): # one list/vector with 10 dimensions from dirichlet distribution
 
 
 
-antal_listor = 12
+number_of_lists = 12
 
 with open("samples.csv", "w", newline="") as file:
 
     writer = csv.writer(file)
 
-    for _ in range(antal_listor):
+    for _ in range(number_of_lists):
 
         one_list = source(10)
 
