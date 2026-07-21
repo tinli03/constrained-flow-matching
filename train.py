@@ -19,8 +19,10 @@ def parse_args():
     return parser.parse_args()
 
 def train(args, model, optimizer):
+    # TODO ROSE draw some validation data 
+    val_rng = np.random.default_rng(12345)
     for i in range(1, args.n_iters + 1):
-        xt, t, target = sample_training_batch(args.batch_size, ...)  # TODO
+        xt, t, target = sample_training_batch(args.batch_size, ...)  # TODO Rose
         pred = model(xt, t)                                       
         loss = ((pred - target) ** 2).mean()                      
 
