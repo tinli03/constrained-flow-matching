@@ -2,7 +2,7 @@
 import torch
 import argparse
 import numpy as np
-
+from input import sample_training_batch
 from model import FlowNetwork
 from data import n_dims # rose skriv in från datan
 
@@ -22,13 +22,14 @@ def train(args, model, optimizer):
     # TODO ROSE draw some validation data 
     val_rng = np.random.default_rng(12345)
     for i in range(1, args.n_iters + 1):
-        xt, t, target = sample_training_batch(args.batch_size, ...)  # TODO Rose
+        xt, t, target = sample_training_batch(i)  # TODO Rose
         pred = model(xt, t)                                       
         loss = ((pred - target) ** 2).mean()                      
 
         optimizer.zero_grad()                                      
         loss.backward()                                              
         optimizer.step()  
+        
     
 def set_seed(seed):
     torch.manual_seed(seed)
