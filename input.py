@@ -15,17 +15,20 @@ def velocity_data(x0, x1):
     v_d = x1 - x0
     return v_d
 
-def sample_training_batch(i):
-    data = pd.read_csv("target_samples.csv", header=None)
-    x1 = data.iloc[i]
+def sample_training_batch(batch_size, i):
+    data = pd.read_csv("target_samples.csv", header=None).to_numpy()
+    source = pd.read_csv("source_samples.csv", header=None).to_numpy()
 
-    source = pd.read_csv("source_samples.csv", header=None)
-    x0 = source.iloc[i]
+    # pick batch_size random rows (with replacement, since the file is small)
+    idx = np.random.randint(0, len(data), size=batch_size)
+    x1 = data[idx]        # (batch_size, N_DIM)
+    x0 = source[idx]      # (batch_size, N_DIM)
 
-    t = np.random.uniform(0, 1)
-    xt = ((1-t)*x0 + t*x1).tolist()
+    # one t per sample in the batch
+    t = np.random.uniform(0, 1, size=(batch_size, 1))  # (batch_size, 1)
 
-    target = (x1 - x0).tolist()
+    xt = (1 - t) * x0 + t * x1        # (batch_size, N_DIM)
+    target = x1 - x0                  # (batch_size, N_DIM)
 
     return xt, t, target
 
@@ -33,7 +36,7 @@ def sample_training_batch(i):
 
 #print(input_points(x0, x1))
 #print(velocity_data(x0, x1))
-print(sample_training_batch(0))
+#print(sample_training_batch(4, 0))
 
 
 

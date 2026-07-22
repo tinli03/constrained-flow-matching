@@ -5,6 +5,7 @@ import numpy as np
 from input import sample_training_batch
 from model import FlowNetwork
 from source_to_file import N_DIM 
+import utils
 
 def parse_args():
     # parses the command line args for the model
@@ -22,7 +23,12 @@ def train(args, model, optimizer):
     # TODO ROSE draw some validation data 
     val_rng = np.random.default_rng(12345)
     for i in range(1, args.n_iters + 1):
-        xt, t, target = sample_training_batch(i)  
+        xt, t, target = sample_training_batch(args.batch_size, i)  
+
+        xt = to_tensor(xt)
+        x = to_tensor(x)
+        target = to_tensor(target)
+
         pred = model(xt, t)                                       
         loss = ((pred - target) ** 2).mean()                      
 
