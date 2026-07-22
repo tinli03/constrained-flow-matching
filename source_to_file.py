@@ -6,7 +6,7 @@ N_DIM = 10
 
 def source(number_of_dim): # one list/vector with 10 dimensions from dirichlet distribution
     alpha_source = np.ones(number_of_dim)
-    x0 = np.random.dirichlet(alpha_source, size=1)
+    x0 = np.random.dirichlet(alpha_source)
     return x0
 
 # def n_dims():

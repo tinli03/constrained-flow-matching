@@ -10,7 +10,7 @@ from utils import to_tensor
 def parse_args():
     # parses the command line args for the model
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n_iters", type=int, default=2000)
+    parser.add_argument("--n_iters", type=int, default=50000)
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--hidden_width", type=int, default=128)
@@ -19,6 +19,15 @@ def parse_args():
     parser.add_argument("--rmseed", type=int, default=0)
     return parser.parse_args()
 
+def plot_loss(iters, losses):
+    plt.figure()
+    plt.plot(iters, losses)
+    plt.xlabel("iteration")
+    plt.ylabel("loss")
+    plt.title("Training loss")
+    plt.savefig("loss_curve.png")
+    plt.show()
+
 def train(args, model, optimizer):
     # TODO ROSE draw some validation data 
     val_rng = np.random.default_rng(12345)
@@ -26,7 +35,7 @@ def train(args, model, optimizer):
         xt, t, target = sample_training_batch(args.batch_size)  
 
         xt = to_tensor(xt)
-        x = to_tensor(x)
+        t = to_tensor(t)
         target = to_tensor(target)
 
         pred = model(xt, t)                                       
@@ -34,14 +43,22 @@ def train(args, model, optimizer):
 
         optimizer.zero_grad()                                      
         loss.backward()                                              
-        optimizer.step()  
-        
+        optimizer.step()     
+
+        if i % 100 == 0:
+            print(f"iter {i}: loss = {loss.item():.5f}")
+            loss_iters.append(i)
+            loss_values.append(loss.item())
+            
+    plot_loss(loss_iters, loss_values)
     
 def set_seed(seed):
     torch.manual_seed(seed)
     np.random.seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+
+
 
 if __name__ == "__main__":
     args = parse_args()
