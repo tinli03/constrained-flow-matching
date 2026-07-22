@@ -6,6 +6,7 @@ from input import sample_training_batch
 from model import FlowNetwork
 from source_to_file import N_DIM 
 from utils import to_tensor
+import matplotlib.pyplot as plt
 
 def parse_args():
     # parses the command line args for the model
@@ -31,6 +32,9 @@ def plot_loss(iters, losses):
 def train(args, model, optimizer):
     # TODO ROSE draw some validation data 
     val_rng = np.random.default_rng(12345)
+    loss_iters = []
+    loss_values = []
+
     for i in range(1, args.n_iters + 1):
         xt, t, target = sample_training_batch(args.batch_size)  
 
@@ -45,11 +49,11 @@ def train(args, model, optimizer):
         loss.backward()                                              
         optimizer.step()     
 
-        if i % 100 == 0:
+        if i % 1000 == 0:
             print(f"iter {i}: loss = {loss.item():.5f}")
             loss_iters.append(i)
             loss_values.append(loss.item())
-            
+
     plot_loss(loss_iters, loss_values)
     
 def set_seed(seed):
@@ -57,7 +61,6 @@ def set_seed(seed):
     np.random.seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
-
 
 
 if __name__ == "__main__":
