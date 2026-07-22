@@ -14,15 +14,11 @@ def target_pair(): # one list/vector with 10 dimensions from dirichlet distribut
 
     return target_pair
 
+def create_target(number_of_lists):
+    with open("target_samples.csv", "w", newline="") as file:
+        writer = csv.writer(file)
+        for _ in range(number_of_lists):
+            one_list = target_pair(number_of_lists/2)
+            writer.writerows(one_list)
 
-number_of_lists = 6 # half as many as for the source
 
-with open("target_samples.csv", "w", newline="") as file:
-
-    writer = csv.writer(file)
-
-    for _ in range(number_of_lists):
-
-        one_list = target_pair()
-
-        writer.writerows(one_list)
