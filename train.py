@@ -34,7 +34,6 @@ def plot_loss(loss_iters, loss_values, val_iters, val_losses):
 
 def train(args, model, optimizer):
     # TODO ROSE draw some validation data 
-    val_rng = np.random.default_rng(12345)
     loss_iters = []
     loss_values = []
     val_iters = []
@@ -54,7 +53,7 @@ def train(args, model, optimizer):
         loss.backward()                                              
         optimizer.step()     
 
-        if i % 1000 == 0:
+        if i % args.val_every == 0:
             print(f"iter {i}: loss = {loss.item():.5f}")
             loss_iters.append(i)
             loss_values.append(loss.item())
