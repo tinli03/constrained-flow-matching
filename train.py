@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 from input import sample_training_batch
 from model import FlowNetwork
-from source_to_file import n_dims 
+from source_to_file import N_DIM 
 
 def parse_args():
     # parses the command line args for the model
@@ -40,7 +40,7 @@ def set_seed(seed):
 if __name__ == "__main__":
     args = parse_args()
     set_seed(args.rmseed)
-    model = FlowNetwork(args, n_dims)
+    model = FlowNetwork(args, N_DIM)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     train(args, model, optimizer)
 
