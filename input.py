@@ -1,6 +1,8 @@
 import numpy as np
 import csv
 import pandas as pd
+from source_to_file import source
+from target_to_file import target1, target2
 
 x0 = np.array([1, 2, 3, 4])
 x1 = np.array([1, 1, 1, 2])
@@ -15,22 +17,32 @@ def velocity_data(x0, x1):
     v_d = x1 - x0
     return v_d
 
-def sample_training_batch(batch_size, i):
-    data = pd.read_csv("target_samples.csv", header=None).to_numpy()
-    source = pd.read_csv("source_samples.csv", header=None).to_numpy()
+def sample_training_batch(batch_size):
+    xt_list = []
+    target_list = []
+    t_list = []
 
-    # pick batch_size random rows (with replacement, since the file is small)
-    idx = np.random.randint(0, len(data), size=batch_size)
-    x1 = data[idx]        # (batch_size, N_DIM)
-    x0 = source[idx]      # (batch_size, N_DIM)
+    for n in range(batch_size):
+        x0 = np.array(source(10))
+        if n % 2 != 0:
+            x1 = np.array(target1())
+        else:
+            x1 = np.array(target2())
+        
+        target = x1 - x0
+        target_list.append(target.tolist())
 
-    # one t per sample in the batch
-    t = np.random.uniform(0, 1, size=(batch_size, 1))  # (batch_size, 1)
+        t = np.random.uniform(0, 1)
+        t_list.append(t)
 
-    xt = (1 - t) * x0 + t * x1        # (batch_size, N_DIM)
-    target = x1 - x0                  # (batch_size, N_DIM)
+        xt = (1 - t) * x0 + t * x1
+        xt_list.append(xt.tolist())
 
-    return xt, t, target
+    xt_stack = np.array(xt_list)
+    t_stack = np.array(t_list)
+    target_stack = np.array(target_list)
+
+    return xt_stack, t_stack, target_stack
 
 
 
