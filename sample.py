@@ -16,9 +16,10 @@ model = FlowNetwork(args, N_DIM)
 model.load_state_dict(torch.load(args.checkpoint_path))
 
 
-def tensor_to_csv(tensor_matrix): # ger ut i CSV alla slutpunkter från data.csv
+def tensor_to_csv(tensor_matrix, number_of_steps): # ger ut i CSV alla slutpunkter från data.csv
     list = tensor_matrix.tolist()
-    with open("unconstrained_generated.csv", "w", newline="") as file:
+    filename = f"{number_of_steps}steps_unconstrained_generated.csv"
+    with open(filename, "w", newline="") as file:
         writer = csv.writer(file)
         for n in range(len(list)):
             one_list = list[n]
@@ -59,6 +60,11 @@ def sample_unconstrained(model, n_steps): # ger ut i TERMINALEN alla slutpunkter
     return x
 
 
-generated = sample_unconstrained(model, 5)
-print(generated)
-print(tensor_to_csv(generated))
+number_of_steps = 100
+generated = sample_unconstrained(model, number_of_steps)
+print(tensor_to_csv(generated, number_of_steps))
+
+
+
+
+#print(create_csv_source(10000)) # number of sources
