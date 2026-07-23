@@ -5,12 +5,6 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from sample import sample_unconstrained, tensor_to_csv
-
-
-
-#generated = sample_unconstrained(model, number_of_steps, filename)
-#print(tensor_to_csv(generated, number_of_steps, method_name))
 
 
 def list_from_csv(filename): # läser av en csv och gör en tensor för att användas i genereringen av samples
@@ -153,13 +147,17 @@ def swd_value(generated_filename, target_filename): # output is swd for each met
     return distance.item()
 
 generated_filename = f"100steps_unconstrained_generated.csv"
-target_filename = f"data.csv" #### fel
+target_filename = f"target.csv" 
 list = list_from_csv(generated_filename)
 print("Mass error mean: ", mass_error_mean(list))
 print("Negativity violation mean: ", negativity_violation_mean(list))
 print("Feasibility rate: ", feasibility_rate2(list), "out of 10 000 are infeasible.")
 print("The mode balance is: ", mode_balance(10, generated_filename))
 PCA_plot(generated_filename, target_filename)
+print("Swd_value - gen vs tar: ", swd_value(generated_filename, target_filename))
+print("Swd_value - tar vs tar: ", swd_value(target_filename, target_filename))
+print("Swd_value - source vs tar: ", swd_value(f"data.csv", target_filename))
+
 
 
 

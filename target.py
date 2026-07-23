@@ -23,6 +23,6 @@ def create_csv_target(number_of_targets): # skapar en csv med alla fasta, source
                 one_list = (target2())
             writer.writerow(one_list)
 
-create_csv_target(10000)
+# create_csv_target(10000)
 
 
