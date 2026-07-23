@@ -32,12 +32,12 @@ def plot_loss(loss_iters, loss_values, val_iters, val_losses):
     plt.savefig("loss_curve.png")
     plt.show()
 
-def train(args, model, optimizer):
-    # TODO ROSE draw some validation data 
+def train(args, model, optimizer, val_xt, val_t, val_target):
     loss_iters = []
     loss_values = []
     val_iters = []
     val_losses = []
+    best_val_loss = float('inf')   
 
     for i in range(1, args.n_iters + 1):
         xt, t, target = sample_training_batch(args.batch_size)  
@@ -57,16 +57,21 @@ def train(args, model, optimizer):
             print(f"iter {i}: loss = {loss.item():.5f}")
             loss_iters.append(i)
             loss_values.append(loss.item())
-    
-        if i % args.val_every == 0:
+
             model.eval()
             with torch.no_grad():
                 val_pred = model(val_xt, val_t)
                 val_loss = ((val_pred - val_target) ** 2).mean()
             model.train()
+            
             print(f"iter {i}: val_loss = {val_loss.item():.5f}")
             val_iters.append(i)          
-            val_losses.append(val_loss.item())   
+            val_losses.append(val_loss.item()) 
+
+            if val_loss.item() < best_val_loss:                          
+                best_val_loss = val_loss.item()                          
+                torch.save(model.state_dict(), args.checkpoint_path)
+                print(f"  new best val_loss saved checkpoint model")     
 
     plot_loss(loss_iters, loss_values, val_iters, val_losses)
     
@@ -90,6 +95,6 @@ if __name__ == "__main__":
     set_seed(args.rmseed)
     model = FlowNetwork(args, N_DIM)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    train(args, model, optimizer)
+    train(args, model, optimizer, val_xt, val_t, val_target)
 
 
