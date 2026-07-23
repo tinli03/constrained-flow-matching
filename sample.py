@@ -10,3 +10,12 @@ import matplotlib.pyplot as plt
 model = FlowNetwork(args, N_DIM)
 model.load_state_dict(torch.load(args.checkpoint_path))
 model.eval()
+
+def sample_unconstrained(model, x0, n_steps=100):
+    x = x0
+    dt = 1.0 / n_steps # hur lång tid varje steg är
+    for k in range(n_steps):
+        t = torch.full((x.shape[0],), k * dt) # hur långt tidsmässigt vi har kommit fram
+        v = model(x, t)
+        x = x + dt * v
+    return x
