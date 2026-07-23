@@ -7,6 +7,8 @@ from model import FlowNetwork
 from source_to_file import N_DIM 
 from utils import to_tensor
 import matplotlib.pyplot as plt
+import os
+
 
 def parse_args():
     # parses the command line args for the model
@@ -68,8 +70,9 @@ def train(args, model, optimizer, val_xt, val_t, val_target):
             val_iters.append(i)          
             val_losses.append(val_loss.item()) 
 
-            if val_loss.item() < best_val_loss:                          
-                best_val_loss = val_loss.item()                          
+            if val_loss.item() < best_val_loss:                       
+                best_val_loss = val_loss.item()
+                os.makedirs(os.path.dirname(args.checkpoint_path), exist_ok=True)                          
                 torch.save(model.state_dict(), args.checkpoint_path)
                 print(f"  new best val_loss saved checkpoint model")     
 
