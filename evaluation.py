@@ -153,11 +153,11 @@ print("Mass error mean: ", mass_error_mean(list))
 print("Negativity violation mean: ", negativity_violation_mean(list))
 print("Feasibility rate: ", feasibility_rate2(list), "out of 10 000 are infeasible.")
 print("The mode balance is: ", mode_balance(10, generated_filename))
-PCA_plot(generated_filename, target_filename)
 print("Swd_value - gen vs tar: ", swd_value(generated_filename, target_filename))
 print("Swd_value - tar vs tar: ", swd_value(target_filename, target_filename))
 print("Swd_value - source vs tar: ", swd_value(f"data.csv", target_filename))
-
+PCA_plot(generated_filename, target_filename)
+PCA_plot(f"data.csv", target_filename)
 
 
 
