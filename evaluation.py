@@ -16,7 +16,7 @@ def list_from_csv(filename): # läser av en csv och gör en tensor för att anv�
 # antal vektorer som ej är feasible
 def feasibility_rate2(list): # vill ha listor i listor av alla steg/vektorer
     x = 0
-    p = 2e-3
+    p = 1e-5
     for rad in range(len(list)):
         sum = 0
         for kolumn in range(len(list[0])):
@@ -35,7 +35,7 @@ def feasibility_rate2(list): # vill ha listor i listor av alla steg/vektorer
 # hur mycket avviker från summa 1 i en vektor
 def mass_error(u): # vill ha en lista
     x = 0
-    for n in range(4):
+    for n in range(10):
         x += u[n]
     mass_error = abs(1-x)
     return mass_error
@@ -71,7 +71,7 @@ def mode_balance(dim, filename): # vill ha en csv med genererade
 # hur mycket negativa värden och dess summan i en vektor
 def negativity_violation(u): # vill ha en lista
     x = 0
-    for n in range(4):
+    for n in range(10):
         if u[n] < 0:
             x += u[n]
         else:
@@ -138,16 +138,16 @@ def swd(generated: torch.Tensor, target: torch.Tensor, num_projections: int = 10
 
 
 def swd_value(generated_filename, target_filename): # output is swd for each method
-    target_df = pd.read_csv(target_filename) ###### BYT UT # Läser targetdata från CSV-filen.
+    target_df = pd.read_csv(target_filename, header = None) ###### BYT UT # Läser targetdata från CSV-filen.
     target = torch.tensor(target_df.to_numpy(), dtype=torch.float32,)     # Omvandlar targetdata från en pandas DataFrame till en PyTorch-tensor.
-    generated_df = pd.read_csv(generated_filename)
+    generated_df = pd.read_csv(generated_filename, header = None)
     generated = torch.tensor(generated_df.to_numpy(), dtype=torch.float32,)
     distance = swd(generated=generated,target=target,num_projections=100,seed=42,)
     
     return distance.item()
 
 g_unconstraint_filename = f"100steps_unconstrained_generated.csv"
-g_final_projection_filename = f"100steps_finalprojection_generated"
+g_final_projection_filename = f"100steps_finalprojection_generated.csv"
 target_filename = f"target.csv" 
 unconstraint_list = list_from_csv(g_unconstraint_filename)
 finalproj_list = list_from_csv(g_final_projection_filename)

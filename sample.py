@@ -43,29 +43,30 @@ def create_csv_source(number_of_sources, filename): # skapar en csv med alla fas
             writer.writerow(one_list)
 
 
-def projection(vector): # input is a list
-    x = 0
-    not_zero = 0
-    diff_sign = 1
-    for n in range(len(vector)):
-        if vector[n] < 0: # all negative values set to zero
-            vector[n] = 0
-        else:
-            x += vector[n]
-            not_zero += 1
+def projection2(vector):
+    vector = np.asarray(vector, dtype=float)
 
-    diff = 1-x
-    if diff < 0: # so you know if you should add or subtract on the vector
-        diff_sign = -1
+    sorted_vector = np.sort(vector)[::-1] # sorting from largest to smallest
+    cumulative_sum = np.cumsum(sorted_vector) # cumulative_sum
 
-    t = abs(diff) / not_zero
-    for n in range(len(vector)):
-        if vector[n] != 0:
-            if diff_sign < 1:
-                vector[n] = vector[n] - t
-            elif diff_sign > 1:
-                vector[n] = vector[n] + t
-    return vector
+    indices = np.arange(1, len(vector) + 1)
+
+    condition = (
+        sorted_vector
+        - (cumulative_sum - 1) / indices
+        > 0
+    ) # s = (the first cumulative sum - 1) DIVIDED with 1 (first vector)
+    # if the first sorted vector - s larger than 0 then TRUE
+
+    rho = indices[condition][-1] # how many should remain positive
+
+    theta = (
+        cumulative_sum[rho - 1] - 1
+    ) / rho
+
+    projected = np.maximum(vector - theta, 0)
+
+    return projected
 
 
 
@@ -88,7 +89,7 @@ def sample_finalproj(model, n_steps, filename):
     list_of_all = sample_unconstrained(model, n_steps, filename)
     for row in range(len(list_of_all)):
         list = list_of_all[row]
-        list_of_all[row] = projection(list)
+        list_of_all[row] = projection2(list)
 
     return list_of_all
 
