@@ -88,19 +88,23 @@ def negativity_violation_mean(list):
 
 
 # plot av hur lika target och genererade är, mål: punkter övertäcker varandra
-def PCA_plot(generated_filename, target_filename): # vill ha csv för target samt för genererade
-    generated_data = pd.read_csv(generated_filename, header=None) ###### change source csv to the generated later # Read the data 
+def PCA_plot(unconstrained_filename,final_projection_filename,target_filename): # vill ha csv för target samt för genererade
+    unconstrained_data = pd.read_csv(unconstrained_filename,header=None) ###### change source csv to the generated later # Read the data 
     target_data = pd.read_csv(target_filename, header=None)
-    combined_data = pd.concat([target_data, generated_data],ignore_index=True) # Combine the datasets
+    final_projection_data = pd.read_csv(final_projection_filename,header=None)
+    combined_data = pd.concat([target_data, unconstrained_data, final_projection_data],ignore_index=True) # Combine the datasets
 
     pca = PCA(n_components=2) # Fit PCA on the combined data
     pca.fit(combined_data)
 
     target_pca = pca.transform(target_data) # Transform both datasets using the same PCA
-    generated_pca = pca.transform(generated_data)
+    unconstrained_pca = pca.transform(unconstrained_data)
+    final_projection_pca = pca.transform(final_projection_data)
 
-    plt.scatter(target_pca[:, 0],target_pca[:, 1],label="Target",alpha=0.6) # Plot the two-dimensional representations
-    plt.scatter(generated_pca[:, 0], generated_pca[:, 1],label="Generated",alpha=0.6 )
+    plt.scatter(target_pca[:, 0],target_pca[:, 1],label="Target",alpha=0.4, s = 10) # Plot the two-dimensional representations
+    plt.scatter(unconstrained_pca[:, 0],unconstrained_pca[:, 1],label="Unconstrained",alpha=0.4,s=10)
+    plt.scatter(final_projection_pca[:, 0], final_projection_pca[:, 1],label="Final projection",alpha=0.4 , s = 10)
+
 
     plt.xlabel("Principal component 1")
     plt.ylabel("Principal component 2")
@@ -158,7 +162,7 @@ print("Negativity violation mean: ", negativity_violation_mean(unconstraint_list
 print("Feasibility rate: ", feasibility_rate2(unconstraint_list), "out of 10 000 are infeasible.")
 print("The mode balance is: ", mode_balance(10, g_unconstraint_filename))
 print("Swd_value - gen vs tar: ", swd_value(g_unconstraint_filename, target_filename))
-PCA_plot(g_unconstraint_filename, target_filename)
+
 
 print("Evaluation of final projection generated points:")
 print("Mass error mean: ", mass_error_mean(finalproj_list))
@@ -166,5 +170,5 @@ print("Negativity violation mean: ", negativity_violation_mean(finalproj_list))
 print("Feasibility rate: ", feasibility_rate2(finalproj_list), "out of 10 000 are infeasible.")
 print("The mode balance is: ", mode_balance(10, g_final_projection_filename))
 print("Swd_value - gen vs tar: ", swd_value(g_final_projection_filename, target_filename))
-PCA_plot(g_final_projection_filename, target_filename)
 
+PCA_plot(g_unconstraint_filename, g_final_projection_filename, target_filename)
