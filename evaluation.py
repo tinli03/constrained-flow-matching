@@ -146,18 +146,25 @@ def swd_value(generated_filename, target_filename): # output is swd for each met
     
     return distance.item()
 
-generated_filename = f"100steps_unconstrained_generated.csv"
+g_unconstraint_filename = f"100steps_unconstrained_generated.csv"
+g_final_projection_filename = f"100steps_finalprojection_generated"
 target_filename = f"target.csv" 
-list = list_from_csv(generated_filename)
-print("Mass error mean: ", mass_error_mean(list))
-print("Negativity violation mean: ", negativity_violation_mean(list))
-print("Feasibility rate: ", feasibility_rate2(list), "out of 10 000 are infeasible.")
-print("The mode balance is: ", mode_balance(10, generated_filename))
-print("Swd_value - gen vs tar: ", swd_value(generated_filename, target_filename))
-print("Swd_value - tar vs tar: ", swd_value(target_filename, target_filename))
-print("Swd_value - source vs tar: ", swd_value(f"data.csv", target_filename))
-PCA_plot(generated_filename, target_filename)
-PCA_plot(f"data.csv", target_filename)
+unconstraint_list = list_from_csv(g_unconstraint_filename)
+finalproj_list = list_from_csv(g_final_projection_filename)
 
+print("Evaluation of unconstraint generated points:")
+print("Mass error mean: ", mass_error_mean(unconstraint_list))
+print("Negativity violation mean: ", negativity_violation_mean(unconstraint_list))
+print("Feasibility rate: ", feasibility_rate2(unconstraint_list), "out of 10 000 are infeasible.")
+print("The mode balance is: ", mode_balance(10, g_unconstraint_filename))
+print("Swd_value - gen vs tar: ", swd_value(g_unconstraint_filename, target_filename))
+PCA_plot(g_unconstraint_filename, target_filename)
 
+print("Evaluation of final projection generated points:")
+print("Mass error mean: ", mass_error_mean(finalproj_list))
+print("Negativity violation mean: ", negativity_violation_mean(finalproj_list))
+print("Feasibility rate: ", feasibility_rate2(finalproj_list), "out of 10 000 are infeasible.")
+print("The mode balance is: ", mode_balance(10, g_final_projection_filename))
+print("Swd_value - gen vs tar: ", swd_value(g_final_projection_filename, target_filename))
+PCA_plot(g_final_projection_filename, target_filename)
 
