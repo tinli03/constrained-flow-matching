@@ -16,13 +16,12 @@ model = FlowNetwork(args, N_DIM)
 model.load_state_dict(torch.load(args.checkpoint_path))
 
 
-def tensor_to_csv(tensor_matrix, number_of_steps, method_name): # ger ut i CSV alla slutpunkter från data.csv
-    list = tensor_matrix.tolist()
+def list_to_csv(list_of_all, number_of_steps, method_name): # ger ut i CSV alla slutpunkter från data.csv
     filename = f"{number_of_steps}steps_{method_name}_generated.csv"
     with open(filename, "w", newline="") as file:
         writer = csv.writer(file)
-        for n in range(len(list)):
-            one_list = list[n]
+        for n in range(len(list_of_all)):
+            one_list = list_of_all[n]
             writer.writerow(one_list)
 
 
@@ -80,34 +79,27 @@ def sample_unconstrained(model, n_steps, filename): # ger ut i TERMINALEN alla s
             t = torch.full((x.shape[0],), k * dt, dtype=x.dtype,device=x.device) # hur långt tidsmässigt vi har kommit fram 
             v = model(x, t)
             x += dt * v
-    return x
+    list_of_all = x.tolist()
+
+    return list_of_all
 
 
 def sample_finalproj(model, n_steps, filename):
-    dt = 1.0 / n_steps 
-    x = tensor_from_source(filename)
-    model.eval()
+    list_of_all = sample_unconstrained(model, n_steps, filename)
+    for row in range(len(list_of_all)):
+        list = list_of_all[row]
+        list_of_all[row] = projection(list)
 
-    with torch.no_grad():
-        for k in range(n_steps):
-            t = torch.full((x.shape[0],), k * dt, dtype=x.dtype,device=x.device) # hur långt tidsmässigt vi har kommit fram 
-            v = model(x, t)
-            x += dt * v
-
-    x = projection(x) ##### it is a tensor now containing many vectors, so need to make it a list or numpy, then project 
-    return x
+    return list_of_all
 
 
 filename = "data.csv"
-method_name = "unconstrained"
-
-
 number_of_steps = 100
+
 generated = sample_unconstrained(model, number_of_steps, filename)
-print(tensor_to_csv(generated, number_of_steps, method_name))
-
-create_csv_source
-
+print(list_to_csv(generated, number_of_steps, "unconstrained"))
+final_proj = sample_finalproj(model, number_of_steps, filename)
+print(list_to_csv(final_proj, number_of_steps, "finalprojection"))
 
 
 
