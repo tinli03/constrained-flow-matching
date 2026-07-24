@@ -88,11 +88,12 @@ def negativity_violation_mean(list):
 
 
 # plot av hur lika target och genererade är, mål: punkter övertäcker varandra
-def PCA_plot(unconstrained_filename,final_projection_filename,target_filename): # vill ha csv för target samt för genererade
+def PCA_plot(unconstrained_filename,final_projection_filename,stepbystep_projection_filename, target_filename): # vill ha csv för target samt för genererade
     unconstrained_data = pd.read_csv(unconstrained_filename,header=None) ###### change source csv to the generated later # Read the data 
     target_data = pd.read_csv(target_filename, header=None)
     final_projection_data = pd.read_csv(final_projection_filename,header=None)
-    combined_data = pd.concat([target_data, unconstrained_data, final_projection_data],ignore_index=True) # Combine the datasets
+    sbs_projection_data = pd.read_csv(stepbystep_projection_filename ,header=None)
+    combined_data = pd.concat([target_data, unconstrained_data, final_projection_data, sbs_projection_data],ignore_index=True) # Combine the datasets
 
     pca = PCA(n_components=2) # Fit PCA on the combined data
     pca.fit(combined_data)
@@ -100,10 +101,12 @@ def PCA_plot(unconstrained_filename,final_projection_filename,target_filename): 
     target_pca = pca.transform(target_data) # Transform both datasets using the same PCA
     unconstrained_pca = pca.transform(unconstrained_data)
     final_projection_pca = pca.transform(final_projection_data)
+    sbs_projection_pca = pca.transform(sbs_projection_data)
 
     plt.scatter(target_pca[:, 0],target_pca[:, 1],label="Target",alpha=0.4, s = 10) # Plot the two-dimensional representations
     plt.scatter(unconstrained_pca[:, 0],unconstrained_pca[:, 1],label="Unconstrained",alpha=0.4,s=10)
     plt.scatter(final_projection_pca[:, 0], final_projection_pca[:, 1],label="Final projection",alpha=0.4 , s = 10)
+    plt.scatter(sbs_projection_pca[:, 0], sbs_projection_pca[:, 1],label="Step-by-step projection",alpha=0.4 , s = 10)
 
 
     plt.xlabel("Principal component 1")
@@ -152,9 +155,11 @@ def swd_value(generated_filename, target_filename): # output is swd for each met
 
 g_unconstraint_filename = f"100steps_unconstrained_generated.csv"
 g_final_projection_filename = f"100steps_finalprojection_generated.csv"
+g_stepbystep_projection_filename = f"100steps_stepbystepprojection_generated.csv"
 target_filename = f"target.csv" 
 unconstraint_list = list_from_csv(g_unconstraint_filename)
 finalproj_list = list_from_csv(g_final_projection_filename)
+stepbystep_list = list_from_csv(g_stepbystep_projection_filename)
 
 print("Evaluation of unconstraint generated points:")
 print("Mass error mean: ", mass_error_mean(unconstraint_list))
@@ -171,4 +176,12 @@ print("Feasibility rate: ", feasibility_rate2(finalproj_list), "out of 10 000 ar
 print("The mode balance is: ", mode_balance(10, g_final_projection_filename))
 print("Swd_value - gen vs tar: ", swd_value(g_final_projection_filename, target_filename))
 
-PCA_plot(g_unconstraint_filename, g_final_projection_filename, target_filename)
+print("Evaluation of step by step generated points:")
+print("Mass error mean: ", mass_error_mean(stepbystep_list))
+print("Negativity violation mean: ", negativity_violation_mean(stepbystep_list))
+print("Feasibility rate: ", feasibility_rate2(stepbystep_list), "out of 10 000 are infeasible.")
+print("The mode balance is: ", mode_balance(10, g_stepbystep_projection_filename))
+print("Swd_value - gen vs tar: ", swd_value(g_stepbystep_projection_filename, target_filename))
+
+
+PCA_plot(g_unconstraint_filename, g_final_projection_filename, g_stepbystep_projection_filename, target_filename)
