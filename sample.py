@@ -93,6 +93,27 @@ def sample_finalproj(model, n_steps, filename):
 
     return list_of_all
 
+def sample_stepbystepproj(model, n_steps, filename):
+    dt = 1.0 / n_steps 
+    x = tensor_from_source(filename)
+    model.eval()
+
+    with torch.no_grad():
+        for k in range(n_steps):
+            t = torch.full((x.shape[0],), k * dt, dtype=x.dtype,device=x.device) # hur långt tidsmässigt vi har kommit fram 
+            v = model(x, t)
+            x += dt * v
+            list_of_all = x.tolist()
+            for row in range(len(list_of_all)):
+                sample = list_of_all[row]
+                list_of_all[row] = projection2(sample).tolist()
+            x = torch.tensor(list_of_all,dtype=x.dtype,device=x.device)
+    list_of_all = x.tolist()
+
+    return list_of_all
+
+    
+
 
 filename = "data.csv"
 number_of_steps = 100
@@ -101,6 +122,8 @@ generated = sample_unconstrained(model, number_of_steps, filename)
 print(list_to_csv(generated, number_of_steps, "unconstrained"))
 final_proj = sample_finalproj(model, number_of_steps, filename)
 print(list_to_csv(final_proj, number_of_steps, "finalprojection"))
+stepbystep_proj = sample_stepbystepproj(model, number_of_steps, filename)
+print(list_to_csv(stepbystep_proj, number_of_steps, "stepbystepprojection"))
 
 
 
