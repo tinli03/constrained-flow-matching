@@ -147,7 +147,7 @@ def swd_value(generated_filename, target_filename): # output is swd for each met
     return distance.item()
 
 g_unconstraint_filename = f"100steps_unconstrained_generated.csv"
-g_final_projection_filename = f"100steps_finalprojection_generated"
+g_final_projection_filename = f"100steps_finalprojection_generated.csv"
 target_filename = f"target.csv" 
 unconstraint_list = list_from_csv(g_unconstraint_filename)
 finalproj_list = list_from_csv(g_final_projection_filename)
