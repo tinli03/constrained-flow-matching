@@ -55,6 +55,11 @@ def list_to_csv(list_of_all, number_of_steps, method_name): # ger ut i CSV alla 
             one_list = list_of_all[n]
             writer.writerow(one_list)
 
+
+def csv_to_list(filename): 
+    data = np.loadtxt(filename, delimiter=",")
+    return data.tolist()
+
 ### -----------------------------------------------
 
 ### METHODS
