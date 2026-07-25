@@ -9,33 +9,12 @@ from source import N_DIM # dimension of both source and target vectors
 from utils import to_tensor
 from train import parse_args
 
-
 args = parse_args()
 model = FlowNetwork(args, N_DIM)
 model.load_state_dict(torch.load(args.checkpoint_path))
 
 
-def csv_to_tensor(filename): # läser av en csv och gör en tensor för att användas i genereringen av samples
-    list = []
-    data = np.loadtxt(filename, delimiter=",")
-    for n in range(data.shape[0]):
-        list.append(data[n])
-    source_matrix = np.array(list)
-    source_tensor = to_tensor(source_matrix)
-
-    return source_tensor
-
-def list_to_csv(list_of_all, number_of_steps, method_name): # ger ut i CSV alla slutpunkter från data.csv
-    filename = f"{number_of_steps}steps_{method_name}_generated.csv"
-    with open(filename, "w", newline="") as file:
-        writer = csv.writer(file)
-        for n in range(len(list_of_all)):
-            one_list = list_of_all[n]
-            writer.writerow(one_list)
-
-
-
-
+### -----------------------------------------------
 
 def projection(vector):
     vector = np.asarray(vector, dtype=float)
@@ -57,6 +36,28 @@ def projection(vector):
     return projected
 
 
+def csv_to_tensor(filename): # läser av en csv och gör en tensor för att användas i genereringen av samples
+    list = []
+    data = np.loadtxt(filename, delimiter=",")
+    for n in range(data.shape[0]):
+        list.append(data[n])
+    source_matrix = np.array(list)
+    source_tensor = to_tensor(source_matrix)
+
+    return source_tensor
+
+
+def list_to_csv(list_of_all, number_of_steps, method_name): # ger ut i CSV alla slutpunkter från data.csv
+    filename = f"{number_of_steps}steps_{method_name}_generated.csv"
+    with open(filename, "w", newline="") as file:
+        writer = csv.writer(file)
+        for n in range(len(list_of_all)):
+            one_list = list_of_all[n]
+            writer.writerow(one_list)
+
+### -----------------------------------------------
+
+### METHODS
 
 def sample_unconstrained(model, n_steps, filename): # input tensor, output lists
     dt = 1.0 / n_steps 
@@ -99,8 +100,9 @@ def sample_stepbystepproj(model, n_steps, filename): # input tensor, output list
     list_of_all = x.tolist()
 
     return list_of_all
-
     
+### -----------------------------------------------
+
 
 
 filename = "data.csv" # created with create_csv_source(10 000)
@@ -114,5 +116,3 @@ stepbystep_proj = sample_stepbystepproj(model, number_of_steps, filename)
 print(list_to_csv(stepbystep_proj, number_of_steps, "stepbystepprojection"))
 
 
-
-#print(create_csv_source(10000)) # number of sources
