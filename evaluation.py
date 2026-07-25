@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from sklearn.decomposition import PCA
-from generate_samples import csv_to_list
+from generate_samples import csv_to_list, sampling_time_un, sampling_time_final, projection_time_final, sampling_time_sbs, projection_time_sbs, number_of_steps
+
 
 
 ### -----------------------------------------------
@@ -83,7 +84,8 @@ def mode_balance(dim, filename): # vill ha en csv med genererade
     return right, left
 
 
-def covariance(filename):
+# measure how similarly the generated datasets behave compared to the target dataset
+def covariance(filename): 
     target = pd.read_csv("target.csv", header=None)
     t_covariance_matrix = target.cov().to_numpy()
     target_cova_mat = t_covariance_matrix.tolist()
@@ -193,6 +195,7 @@ print("Feasibility rate: ", feasibility_rate2(unconstraint_list), "out of 10 000
 print("The mode balance is: ", mode_balance(10, g_unconstraint_filename))
 print("Swd_value: ", swd_value(g_unconstraint_filename, target_filename))
 print("The covarience matrix difference: ", covariance(g_unconstraint_filename))
+print(f"Sampling time: {sampling_time_un:.4f} s")
 
 print("Evaluation of final projection generated points:")
 print("Mass error mean: ", mass_error_mean(finalproj_list))
@@ -201,6 +204,10 @@ print("Feasibility rate: ", feasibility_rate2(finalproj_list), "out of 10 000 ar
 print("The mode balance is: ", mode_balance(10, g_final_projection_filename))
 print("Swd_value: ", swd_value(g_final_projection_filename, target_filename))
 print("The covarience matrix difference: ", covariance(g_final_projection_filename))
+print(f"Sampling time : {sampling_time_final:.4f} s")
+print(f"Projection time - 1 projection: {projection_time_final:.4f} s")
+print(f"Total time     : {sampling_time_final + projection_time_final:.4f} s")
+
 
 print("Evaluation of step by step generated points:")
 print("Mass error mean: ", mass_error_mean(stepbystep_list))
@@ -209,5 +216,13 @@ print("Feasibility rate: ", feasibility_rate2(stepbystep_list), "out of 10 000 a
 print("The mode balance is: ", mode_balance(10, g_stepbystep_projection_filename))
 print("Swd_value: ", swd_value(g_stepbystep_projection_filename, target_filename))
 print("The covarience matrix difference: ", covariance(g_stepbystep_projection_filename))
+print(f"Sampling time:   {sampling_time_sbs:.6f} seconds")
+print(f"Projection time - 100 projections: {projection_time_sbs:.6f} seconds")
+print(f"Mean projection time - mean for 1 projection: {(projection_time_sbs / number_of_steps):.6f} seconds")
+print(f"Total time:  {sampling_time_sbs + projection_time_sbs:.4f} s")
 
 PCA_plot(g_unconstraint_filename, g_final_projection_filename, g_stepbystep_projection_filename, target_filename)
+
+
+
+

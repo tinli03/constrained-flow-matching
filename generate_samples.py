@@ -2,7 +2,7 @@
 import torch
 import csv
 import numpy as np
-import matplotlib.pyplot as plt
+import time
 
 from model import FlowNetwork
 from source import N_DIM # dimension of both source and target vectors
@@ -69,6 +69,8 @@ def sample_unconstrained(model, n_steps, filename): # input tensor, output lists
     x = csv_to_tensor(filename)
     model.eval()
 
+    start = time.perf_counter()
+
     with torch.no_grad():
         for k in range(n_steps):
             t = torch.full((x.shape[0],), k * dt, dtype=x.dtype,device=x.device) # hur långt tidsmässigt vi har kommit fram 
@@ -76,35 +78,52 @@ def sample_unconstrained(model, n_steps, filename): # input tensor, output lists
             x += dt * v
     list_of_all = x.tolist()
 
-    return list_of_all
+    sampling_time = time.perf_counter() - start
+
+    return list_of_all, sampling_time
 
 
 def sample_finalproj(model, n_steps, filename): # input tensor, output lists
-    list_of_all = sample_unconstrained(model, n_steps, filename)
+    list_of_all = sample_unconstrained(model, n_steps, filename)[0]
+    sampling_time = sample_unconstrained(model, n_steps, filename)[1]
+    start = time.perf_counter()
+
     for row in range(len(list_of_all)):
         list = list_of_all[row]
         list_of_all[row] = projection(list)
 
-    return list_of_all
+    projection_time = time.perf_counter() - start
+
+    return list_of_all, sampling_time, projection_time
+
 
 def sample_stepbystepproj(model, n_steps, filename): # input tensor, output lists
     dt = 1.0 / n_steps 
     x = csv_to_tensor(filename)
     model.eval()
+    sampling_time = 0.0
+    projection_time = 0.0
 
     with torch.no_grad():
         for k in range(n_steps):
             t = torch.full((x.shape[0],), k * dt, dtype=x.dtype,device=x.device) # hur långt tidsmässigt vi har kommit fram 
+            
+            sampling_start = time.perf_counter()
             v = model(x, t)
             x += dt * v
+            sampling_time += time.perf_counter() - sampling_start
+            
+            projection_start = time.perf_counter()
             list_of_all = x.tolist()
             for row in range(len(list_of_all)):
                 sample = list_of_all[row]
                 list_of_all[row] = projection(sample).tolist()
             x = torch.tensor(list_of_all,dtype=x.dtype,device=x.device)
+            projection_time += time.perf_counter() - projection_start
+
     list_of_all = x.tolist()
 
-    return list_of_all
+    return list_of_all, sampling_time, projection_time
     
 ### -----------------------------------------------
 
@@ -113,11 +132,16 @@ def sample_stepbystepproj(model, n_steps, filename): # input tensor, output list
 filename = "data.csv" # created with create_csv_source(10 000)
 number_of_steps = 100
 
-generated = sample_unconstrained(model, number_of_steps, filename)
-print(list_to_csv(generated, number_of_steps, "unconstrained"))
-final_proj = sample_finalproj(model, number_of_steps, filename)
-print(list_to_csv(final_proj, number_of_steps, "finalprojection"))
-stepbystep_proj = sample_stepbystepproj(model, number_of_steps, filename)
-print(list_to_csv(stepbystep_proj, number_of_steps, "stepbystepprojection"))
+generated = sample_unconstrained(model, number_of_steps, filename)[0]
+list_to_csv(generated, number_of_steps, "unconstrained")
+final_proj = sample_finalproj(model, number_of_steps, filename)[0]
+list_to_csv(final_proj, number_of_steps, "finalprojection")
+stepbystep_proj = sample_stepbystepproj(model, number_of_steps, filename)[0]
+list_to_csv(stepbystep_proj, number_of_steps, "stepbystepprojection")
 
 
+generated, sampling_time_un = sample_unconstrained(model, number_of_steps, filename)
+
+generated, sampling_time_final, projection_time_final = sample_finalproj(model, number_of_steps, filename)
+
+samples, sampling_time_sbs, projection_time_sbs = sample_stepbystepproj(model, number_of_steps, filename)
