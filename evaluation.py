@@ -3,6 +3,7 @@ import torch
 import csv
 import pandas as pd 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from sklearn.decomposition import PCA
 from generate_samples import csv_to_list
@@ -80,6 +81,32 @@ def mode_balance(dim, filename): # vill ha en csv med genererade
     left = l / (l+r)
     right = r / (l+r)
     return right, left
+
+
+def covariance(filename):
+    target = pd.read_csv("target.csv", header=None)
+    t_covariance_matrix = target.cov().to_numpy()
+    target_cova_mat = t_covariance_matrix.tolist()
+
+    generated = pd.read_csv(filename, header=None) ##### BYT TILL generated csv sen
+    g_covariance_matrix = generated.cov().to_numpy()
+
+    difference = (t_covariance_matrix - g_covariance_matrix).tolist()
+
+    E_cov = 0
+    for row in range(10):
+        for column in range(10):
+            E_cov += (difference[row][column])**2
+    abs_cova_err = np.sqrt(E_cov)
+
+    norm_target_cova_mat = 0
+    for row in range(10):
+        for column in range(10):
+            norm_target_cova_mat += (target_cova_mat[row][column])**2
+    norm_target = np.sqrt(norm_target_cova_mat)
+    E_rel = abs_cova_err / norm_target
+    
+    return E_rel
 
 
 # plot av hur lika target och genererade är, mål: punkter övertäcker varandra
@@ -165,6 +192,7 @@ print("Negativity violation mean: ", negativity_violation_mean(unconstraint_list
 print("Feasibility rate: ", feasibility_rate2(unconstraint_list), "out of 10 000 are infeasible.")
 print("The mode balance is: ", mode_balance(10, g_unconstraint_filename))
 print("Swd_value: ", swd_value(g_unconstraint_filename, target_filename))
+print("The covarience matrix difference: ", covariance(g_unconstraint_filename))
 
 print("Evaluation of final projection generated points:")
 print("Mass error mean: ", mass_error_mean(finalproj_list))
@@ -172,6 +200,7 @@ print("Negativity violation mean: ", negativity_violation_mean(finalproj_list))
 print("Feasibility rate: ", feasibility_rate2(finalproj_list), "out of 10 000 are infeasible.")
 print("The mode balance is: ", mode_balance(10, g_final_projection_filename))
 print("Swd_value: ", swd_value(g_final_projection_filename, target_filename))
+print("The covarience matrix difference: ", covariance(g_final_projection_filename))
 
 print("Evaluation of step by step generated points:")
 print("Mass error mean: ", mass_error_mean(stepbystep_list))
@@ -179,5 +208,6 @@ print("Negativity violation mean: ", negativity_violation_mean(stepbystep_list))
 print("Feasibility rate: ", feasibility_rate2(stepbystep_list), "out of 10 000 are infeasible.")
 print("The mode balance is: ", mode_balance(10, g_stepbystep_projection_filename))
 print("Swd_value: ", swd_value(g_stepbystep_projection_filename, target_filename))
+print("The covarience matrix difference: ", covariance(g_stepbystep_projection_filename))
 
 PCA_plot(g_unconstraint_filename, g_final_projection_filename, g_stepbystep_projection_filename, target_filename)
