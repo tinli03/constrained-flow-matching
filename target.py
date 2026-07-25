@@ -3,8 +3,6 @@
 import csv
 import numpy as np
 
-from source_to_file import N_DIM 
-
 
 
 def target1():

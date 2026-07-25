@@ -2,13 +2,13 @@
 import torch
 import csv
 import numpy as np
+import matplotlib.pyplot as plt
 
 from model import FlowNetwork
-from source_to_file import N_DIM 
+from source import N_DIM, source
 from utils import to_tensor
-import matplotlib.pyplot as plt
 from train import parse_args
-from source_to_file import source
+
 
 args = parse_args()
 model = FlowNetwork(args, N_DIM)

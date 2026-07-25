@@ -5,9 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-from input_NNtraining import sample_training_batch
+from training_data import sample_training_batch
 from model import FlowNetwork
-from source_to_file import N_DIM 
+from source import N_DIM 
 from utils import to_tensor
 
 
