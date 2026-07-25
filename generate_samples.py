@@ -47,8 +47,8 @@ def csv_to_tensor(filename): # läser av en csv och gör en tensor för att anv�
     return source_tensor
 
 
-def list_to_csv(list_of_all, number_of_steps, method_name): # ger ut i CSV alla slutpunkter från data.csv
-    filename = f"{number_of_steps}steps_{method_name}_generated.csv"
+def list_to_csv(list_of_all, method_name, batch_name): # ger ut i CSV alla slutpunkter från data.csv
+    filename = f"{batch_name}_{method_name}_generated.csv"
     with open(filename, "w", newline="") as file:
         writer = csv.writer(file)
         for n in range(len(list_of_all)):
@@ -127,21 +127,29 @@ def sample_stepbystepproj(model, n_steps, filename): # input tensor, output list
     
 ### -----------------------------------------------
 
+# BATCH 1
 
+#filename = "data.csv" # created with create_csv_source(10 000)
+#filename = "d_batch2_dat.csv"
+#batch_name = "d_2"
+#filename = "d_batch5_dat.csv"
+#batch_name = "d_5"
 
-filename = "data.csv" # created with create_csv_source(10 000)
 number_of_steps = 100
 
-generated = sample_unconstrained(model, number_of_steps, filename)[0]
-list_to_csv(generated, number_of_steps, "unconstrained")
-final_proj = sample_finalproj(model, number_of_steps, filename)[0]
-list_to_csv(final_proj, number_of_steps, "finalprojection")
-stepbystep_proj = sample_stepbystepproj(model, number_of_steps, filename)[0]
-list_to_csv(stepbystep_proj, number_of_steps, "stepbystepprojection")
+#generated = sample_unconstrained(model, number_of_steps, filename)[0]
+#list_to_csv(generated, "unconstrained", batch_name)
+#final_proj = sample_finalproj(model, number_of_steps, filename)[0]
+#list_to_csv(final_proj, "finalprojection", batch_name)
+#stepbystep_proj = sample_stepbystepproj(model, number_of_steps, filename)[0]
+#list_to_csv(stepbystep_proj, "stepbystepprojection", batch_name)
 
 
-generated, sampling_time_un = sample_unconstrained(model, number_of_steps, filename)
+#generated, sampling_time_un = sample_unconstrained(model, number_of_steps, filename)
 
-generated, sampling_time_final, projection_time_final = sample_finalproj(model, number_of_steps, filename)
+#generated, sampling_time_final, projection_time_final = sample_finalproj(model, number_of_steps, filename)
 
-samples, sampling_time_sbs, projection_time_sbs = sample_stepbystepproj(model, number_of_steps, filename)
+#samples, sampling_time_sbs, projection_time_sbs = sample_stepbystepproj(model, number_of_steps, filename)
+
+# BATCH 2
+

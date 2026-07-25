@@ -8,10 +8,13 @@ def source(number_of_dim): # one list/vector with 10 dimensions from dirichlet d
     x0 = np.random.dirichlet(alpha_source)
     return x0
 
-def create_csv_source(number_of_sources):
-    with open("data.csv", "w", newline="") as file:
+def create_csv_source(number_of_sources, filename):
+    with open(filename, "w", newline="") as file:
         writer = csv.writer(file)
         for _ in range(number_of_sources):
             one_list = source(N_DIM)
-            writer.writerows(one_list)
+            writer.writerow(one_list)
+
+
+# create_csv_source(10000, "d_batch5_dat.csv")
 
