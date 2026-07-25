@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from model import FlowNetwork
-from source import N_DIM, source
+from source import N_DIM # dimension of both source and target vectors
 from utils import to_tensor
 from train import parse_args
 
@@ -14,6 +14,16 @@ args = parse_args()
 model = FlowNetwork(args, N_DIM)
 model.load_state_dict(torch.load(args.checkpoint_path))
 
+
+def csv_to_tensor(filename): # läser av en csv och gör en tensor för att användas i genereringen av samples
+    list = []
+    data = np.loadtxt(filename, delimiter=",")
+    for n in range(data.shape[0]):
+        list.append(data[n])
+    source_matrix = np.array(list)
+    source_tensor = to_tensor(source_matrix)
+
+    return source_tensor
 
 def list_to_csv(list_of_all, number_of_steps, method_name): # ger ut i CSV alla slutpunkter från data.csv
     filename = f"{number_of_steps}steps_{method_name}_generated.csv"
@@ -24,47 +34,33 @@ def list_to_csv(list_of_all, number_of_steps, method_name): # ger ut i CSV alla 
             writer.writerow(one_list)
 
 
-def tensor_from_source(filename): # läser av en csv och gör en tensor för att användas i genereringen av samples
-    list = []
-    data = np.loadtxt(filename, delimiter=",")
-    for n in range(data.shape[0]):
-        list.append(data[n])
-    source_matrix = np.array(list)
-    source_tensor = to_tensor(source_matrix)
-
-    return source_tensor
 
 
-def projection2(vector):
+
+def projection(vector):
     vector = np.asarray(vector, dtype=float)
-
     sorted_vector = np.sort(vector)[::-1] # sorting from largest to smallest
     cumulative_sum = np.cumsum(sorted_vector) # cumulative_sum
-
     indices = np.arange(1, len(vector) + 1)
-
     condition = (
         sorted_vector
         - (cumulative_sum - 1) / indices
         > 0
     ) # s = (the first cumulative sum - 1) DIVIDED with 1 (first vector)
     # if the first sorted vector - s larger than 0 then TRUE
-
     rho = indices[condition][-1] # how many should remain positive
-
     theta = (
         cumulative_sum[rho - 1] - 1
     ) / rho
-
     projected = np.maximum(vector - theta, 0)
 
     return projected
 
 
 
-def sample_unconstrained(model, n_steps, filename): # ger ut i TERMINALEN alla slutpunkter från data.csv
+def sample_unconstrained(model, n_steps, filename): # input tensor, output lists
     dt = 1.0 / n_steps 
-    x = tensor_from_source(filename)
+    x = csv_to_tensor(filename)
     model.eval()
 
     with torch.no_grad():
@@ -77,17 +73,17 @@ def sample_unconstrained(model, n_steps, filename): # ger ut i TERMINALEN alla s
     return list_of_all
 
 
-def sample_finalproj(model, n_steps, filename):
+def sample_finalproj(model, n_steps, filename): # input tensor, output lists
     list_of_all = sample_unconstrained(model, n_steps, filename)
     for row in range(len(list_of_all)):
         list = list_of_all[row]
-        list_of_all[row] = projection2(list)
+        list_of_all[row] = projection(list)
 
     return list_of_all
 
-def sample_stepbystepproj(model, n_steps, filename):
+def sample_stepbystepproj(model, n_steps, filename): # input tensor, output lists
     dt = 1.0 / n_steps 
-    x = tensor_from_source(filename)
+    x = csv_to_tensor(filename)
     model.eval()
 
     with torch.no_grad():
@@ -98,7 +94,7 @@ def sample_stepbystepproj(model, n_steps, filename):
             list_of_all = x.tolist()
             for row in range(len(list_of_all)):
                 sample = list_of_all[row]
-                list_of_all[row] = projection2(sample).tolist()
+                list_of_all[row] = projection(sample).tolist()
             x = torch.tensor(list_of_all,dtype=x.dtype,device=x.device)
     list_of_all = x.tolist()
 
@@ -107,7 +103,7 @@ def sample_stepbystepproj(model, n_steps, filename):
     
 
 
-filename = "data.csv"
+filename = "data.csv" # created with create_csv_source(10 000)
 number_of_steps = 100
 
 generated = sample_unconstrained(model, number_of_steps, filename)
