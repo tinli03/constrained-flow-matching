@@ -1,6 +1,8 @@
+# creates the input for the NN training, includes produced targets, xt, and t
+
 import numpy as np
 from source_to_file import source
-from target_to_file import target1, target2
+from target import target1, target2
 
 
 

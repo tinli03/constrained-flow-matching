@@ -1,16 +1,21 @@
-import torch
+# creates the target points and into a csv file called target.csv
+
 import csv
 import numpy as np
 
-from model import FlowNetwork
 from source_to_file import N_DIM 
-from utils import to_tensor
-import matplotlib.pyplot as plt
-from train import parse_args
-from input import sample_training_batch 
-from target_to_file import target1, target2
 
 
+
+def target1():
+    alpha_1 = np.array([8, 8, 8, 8, 8, 1, 1, 1, 1, 1])
+    x1_a = np.random.dirichlet(alpha_1)
+    return x1_a
+
+def target2():
+    alpha_2 = np.array([1, 1, 1, 1, 1, 8, 8, 8, 8, 8])
+    x1_b = np.random.dirichlet(alpha_2)
+    return x1_b
 
 
 def create_csv_target(number_of_targets): # skapar en csv med alla fasta, source punkter som används vid evaluation för alla metoder
@@ -22,7 +27,5 @@ def create_csv_target(number_of_targets): # skapar en csv med alla fasta, source
             else:
                 one_list = (target2())
             writer.writerow(one_list)
-
-# create_csv_target(10000)
 
 

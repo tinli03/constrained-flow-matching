@@ -8,7 +8,6 @@ from source_to_file import N_DIM
 from utils import to_tensor
 import matplotlib.pyplot as plt
 from train import parse_args
-from input import sample_training_batch 
 from source_to_file import source
 
 args = parse_args()

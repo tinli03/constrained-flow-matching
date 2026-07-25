@@ -2,12 +2,14 @@
 import torch
 import argparse
 import numpy as np
-from input import sample_training_batch
+import matplotlib.pyplot as plt
+import os
+
+from input_NNtraining import sample_training_batch
 from model import FlowNetwork
 from source_to_file import N_DIM 
 from utils import to_tensor
-import matplotlib.pyplot as plt
-import os
+
 
 
 def parse_args():
