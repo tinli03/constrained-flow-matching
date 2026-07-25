@@ -179,6 +179,11 @@ def swd_value(generated_filename, target_filename): # output is swd for each met
 
 ### -----------------------------------------------
 
+def print_title(title):
+    print()
+    print("=" * 60)
+    print(title.upper())
+    print("=" * 60)
 
 g_unconstraint_filename = f"100steps_unconstrained_generated.csv"
 g_final_projection_filename = f"100steps_finalprojection_generated.csv"
@@ -188,7 +193,7 @@ unconstraint_list = csv_to_list(g_unconstraint_filename)
 finalproj_list = csv_to_list(g_final_projection_filename)
 stepbystep_list = csv_to_list(g_stepbystep_projection_filename)
 
-print("Evaluation of unconstraint generated points:")
+print_title("Evaluation of unconstraint generated points:")
 print("Mass error mean: ", mass_error_mean(unconstraint_list))
 print("Negativity violation mean: ", negativity_violation_mean(unconstraint_list))
 print("Feasibility rate: ", feasibility_rate2(unconstraint_list), "out of 10 000 are infeasible.")
@@ -197,7 +202,7 @@ print("Swd_value: ", swd_value(g_unconstraint_filename, target_filename))
 print("The covarience matrix difference: ", covariance(g_unconstraint_filename))
 print(f"Sampling time: {sampling_time_un:.4f} s")
 
-print("Evaluation of final projection generated points:")
+print_title("Evaluation of final projection generated points:")
 print("Mass error mean: ", mass_error_mean(finalproj_list))
 print("Negativity violation mean: ", negativity_violation_mean(finalproj_list))
 print("Feasibility rate: ", feasibility_rate2(finalproj_list), "out of 10 000 are infeasible.")
@@ -209,7 +214,7 @@ print(f"Projection time - 1 projection: {projection_time_final:.4f} s")
 print(f"Total time     : {sampling_time_final + projection_time_final:.4f} s")
 
 
-print("Evaluation of step by step generated points:")
+print_title("Evaluation of step by step generated points:")
 print("Mass error mean: ", mass_error_mean(stepbystep_list))
 print("Negativity violation mean: ", negativity_violation_mean(stepbystep_list))
 print("Feasibility rate: ", feasibility_rate2(stepbystep_list), "out of 10 000 are infeasible.")
