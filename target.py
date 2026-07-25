@@ -2,16 +2,29 @@
 
 import csv
 import numpy as np
+from source import N_DIM
 
+
+def alpha_distribution():
+    alpha1 = []
+    alpha2 = []
+    for n in range(N_DIM):
+        if n < N_DIM // 2:
+            alpha1.append(8)
+            alpha2.append(1)
+        else:
+            alpha1.append(1)
+            alpha2.append(8)
+    return alpha1, alpha2
 
 
 def target1():
-    alpha_1 = np.array([8, 8, 8, 8, 8, 1, 1, 1, 1, 1])
+    alpha_1 = np.array(alpha_distribution()[0])
     x1_a = np.random.dirichlet(alpha_1)
     return x1_a
 
 def target2():
-    alpha_2 = np.array([1, 1, 1, 1, 1, 8, 8, 8, 8, 8])
+    alpha_2 = np.array(alpha_distribution()[1])
     x1_b = np.random.dirichlet(alpha_2)
     return x1_b
 

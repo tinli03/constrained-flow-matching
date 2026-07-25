@@ -34,13 +34,6 @@ def tensor_from_source(filename): # läser av en csv och gör en tensor för att
 
     return source_tensor
 
-def create_csv_source(number_of_sources, filename): # skapar en csv med alla fasta, source punkter som används vid evaluation för alla metoder
-    with open(filename, "w", newline="") as file:
-        writer = csv.writer(file)
-        for _ in range(number_of_sources):
-            one_list = source(10)
-            writer.writerow(one_list)
-
 
 def projection2(vector):
     vector = np.asarray(vector, dtype=float)

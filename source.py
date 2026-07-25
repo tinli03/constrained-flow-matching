@@ -1,7 +1,6 @@
 import csv
 import numpy as np
 
-
 N_DIM = 10
 
 def source(number_of_dim): # one list/vector with 10 dimensions from dirichlet distribution
@@ -10,7 +9,7 @@ def source(number_of_dim): # one list/vector with 10 dimensions from dirichlet d
     return x0
 
 def create_csv_source(number_of_sources):
-    with open("source_samples.csv", "w", newline="") as file:
+    with open("data.csv", "w", newline="") as file:
         writer = csv.writer(file)
         for _ in range(number_of_sources):
             one_list = source(N_DIM)
