@@ -6,14 +6,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from sklearn.decomposition import PCA
-from generate_samples import csv_to_list, sampling_time_un, sampling_time_final, projection_time_final, sampling_time_sbs, projection_time_sbs, number_of_steps
-
+#from generate_samples import csv_to_list
+# sampling_time_un, sampling_time_final, projection_time_final, sampling_time_sbs, projection_time_sbs, number_of_steps
+from source import N_DIM
 
 
 ### -----------------------------------------------
 
 ### EVALUATION METRICS 
  
+def csv_to_list(filename):
+
+    data = np.loadtxt(filename, delimiter=",")
+
+    return data.tolist() 
 
 # hur mycket avviker från summa 1 i en vektor
 def mass_error(u): # vill ha en lista
@@ -85,12 +91,12 @@ def mode_balance(dim, filename): # vill ha en csv med genererade
 
 
 # measure how similarly the generated datasets behave compared to the target dataset
-def covariance(filename): 
-    target = pd.read_csv("target.csv", header=None)
+def covariance(generated_filename, target_filename): 
+    target = pd.read_csv(target_filename, header=None)
     t_covariance_matrix = target.cov().to_numpy()
     target_cova_mat = t_covariance_matrix.tolist()
 
-    generated = pd.read_csv(filename, header=None) ##### BYT TILL generated csv sen
+    generated = pd.read_csv(generated_filename, header=None) ##### BYT TILL generated csv sen
     g_covariance_matrix = generated.cov().to_numpy()
 
     difference = (t_covariance_matrix - g_covariance_matrix).tolist()
@@ -185,89 +191,189 @@ def print_title(title):
     print(title.upper())
     print("=" * 60)
 
-unconstrained_filename = f"100steps_unconstrained_generated.csv"
-finalprojection_filename = f"100steps_finalprojection_generated.csv"
-stepbystepprojection_filename = f"100steps_stepbystepprojection_generated.csv"
-target_filename = f"target.csv" 
-unconstrained_list = csv_to_list(unconstrained_filename)
-finalprojection_list = csv_to_list(finalprojection_filename)
-stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
-
-print_title("Evaluation of unconstraint generated points:")
-print("Mass error mean: ", mass_error_mean(unconstrained_list))
-print("Negativity violation mean: ", negativity_violation_mean(unconstrained_list))
-print("Feasibility rate: ", feasibility_rate2(unconstrained_list), "out of 10 000 are infeasible.")
-print("The mode balance is: ", mode_balance(10, unconstrained_filename))
-print("Swd_value: ", swd_value(unconstrained_filename, target_filename))
-print("The covarience matrix difference: ", covariance(unconstrained_filename))
-print(f"Sampling time: {sampling_time_un:.4f} s")
-
-print_title("Evaluation of final projection generated points:")
-print("Mass error mean: ", mass_error_mean(finalprojection_list))
-print("Negativity violation mean: ", negativity_violation_mean(finalprojection_list))
-print("Feasibility rate: ", feasibility_rate2(finalprojection_list), "out of 10 000 are infeasible.")
-print("The mode balance is: ", mode_balance(10, finalprojection_filename))
-print("Swd_value: ", swd_value(finalprojection_filename, target_filename))
-print("The covarience matrix difference: ", covariance(finalprojection_filename))
-print(f"Sampling time : {sampling_time_final:.4f} s")
-print(f"Projection time - 1 projection: {projection_time_final:.4f} s")
-print(f"Total time     : {sampling_time_final + projection_time_final:.4f} s")
-
-
-print_title("Evaluation of step by step generated points:")
-print("Mass error mean: ", mass_error_mean(stepbystepprojection_list))
-print("Negativity violation mean: ", negativity_violation_mean(stepbystepprojection_list))
-print("Feasibility rate: ", feasibility_rate2(stepbystepprojection_list), "out of 10 000 are infeasible.")
-print("The mode balance is: ", mode_balance(10, stepbystepprojection_filename))
-print("Swd_value: ", swd_value(stepbystepprojection_filename, target_filename))
-print("The covarience matrix difference: ", covariance(stepbystepprojection_filename))
-print(f"Sampling time:   {sampling_time_sbs:.6f} seconds")
-print(f"Projection time - 100 projections: {projection_time_sbs:.6f} seconds")
-print(f"Mean projection time - mean for 1 projection: {(projection_time_sbs / number_of_steps):.6f} seconds")
-print(f"Total time:  {sampling_time_sbs + projection_time_sbs:.4f} s")
-
-PCA_plot(unconstrained_filename, finalprojection_filename, stepbystepprojection_filename, target_filename)
-
-results = {"unconstrained": {1: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},2: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},3: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},4: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},5: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},},
-    "finalprojection": {1: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},2: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},3: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},4: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},5: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},},
-    "stepbystepprojection": {1: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},2: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},3: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},4: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},5: {"mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,},},}
-total_batches = 5
-methods = ["unconstrained", "finalprojection", "stepbystepprojection"]
-metrics = ["mass_error_mean", "negativity_violation_mean", "feasibility_rate2", "mode_balance", "swd_value", "covariance"]
-filenames = ["100steps_unconstrained_generated.csv", "100steps_finalprojection_generated.csv", "100steps_stepbystepprojection_generated.csv"]
-
- # adds all the filenames
-for i in range(1, total_batches + 1):
-    for n in range(len(methods)):
-        filenames.append(f"d_{i}_{methods[n]}_generated.csv")
-
-print("Mass error mean: ", mass_error_mean(unconstrained_list))
-print("Negativity violation mean: ", negativity_violation_mean(unconstrained_list))
-print("Feasibility rate: ", feasibility_rate2(unconstrained_list), "out of 10 000 are infeasible.")
-print("The mode balance is: ", mode_balance(10, unconstrained_filename))
-print("Swd_value: ", swd_value(unconstrained_filename, target_filename))
-print("The covarience matrix difference: ", covariance(unconstrained_filename))
-unconstrained_filename = f"100steps_unconstrained_generated.csv"
-finalprojection_filename = f"100steps_finalprojection_generated.csv"
-stepbystepprojection_filename = f"100steps_stepbystepprojection_generated.csv"
-target_filename = f"target.csv" 
-unconstrained_list = csv_to_list(unconstrained_filename)
-finalprojection_list = csv_to_list(finalprojection_filename)
-stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
-
-for number_of_method in range(len(methods)): # 3 st, 0
-    for number_of_metric in range(len(metrics)): # 6 st, 0
-        for number_of_batch in range(1, total_batches + 1): # 5 st, 1
-            if number_of_metric == 1 or 2 or 3:
-                function = csv_to_list(filenames[number_of_metric * 3])
-                value = f"{metrics[number_of_metric]}(csv_to_list(filenames[number_of_metric * 3]))"
-            if number_of_metric == 6:
-                value = f"{metrics[number_of_metric]}{csv_to_list(filenames[number_of_metric * 3])}"
-            results[methods[number_of_method]][number_of_batch][metrics[number_of_metric]] =  value
-
-
-results["unc"][1].append(0.136)
+all_lists = []
+def evaluation_list(generated_filename, target_filename, batch_number, method):
+    one_list = [batch_number, method, mass_error_mean(csv_to_list(generated_filename)), negativity_violation_mean(csv_to_list(generated_filename)), feasibility_rate2(csv_to_list(generated_filename)), mode_balance(N_DIM, generated_filename)[0], mode_balance(N_DIM, generated_filename)[1], swd_value(generated_filename, target_filename), covariance(generated_filename, target_filename)]
+    all_lists.append(one_list)
     
+    return one_list
+
+def evaluation_list_to_csv(): # ger ut i CSV alla slutpunkter från data.csv
+    filename = f"evaluation.csv"
+    with open(filename, "w", newline="") as file:
+        writer = csv.writer(file)
+
+        writer.writerow(["batch","method","mass_error_mean","negativity_violation_mean","infeasible_count","mode_balance_right","mode_balance_left","swd","covariance_difference"])
+
+        writer.writerow(evaluation_list("100steps_unconstrained_generated.csv", "target.csv", 1, "unc"))
+        writer.writerow(evaluation_list("d_2_unconstrained_generated.csv", "target.csv", 2, "unc" ))
+        writer.writerow(evaluation_list("d_3_unconstrained_generated.csv", "target.csv", 3, "unc" ))
+        writer.writerow(evaluation_list("d_4_unconstrained_generated.csv", "target.csv", 4, "unc" ))
+        writer.writerow(evaluation_list("d_5_unconstrained_generated.csv", "target.csv", 5, "unc" ))
+
+        writer.writerow(evaluation_list("100steps_finalprojection_generated.csv", "target.csv", 1, "fpr"))
+        writer.writerow(evaluation_list("d_2_finalprojection_generated.csv", "target.csv", 2, "fpr" ))
+        writer.writerow(evaluation_list("d_3_finalprojection_generated.csv", "target.csv", 3, "fpr"))
+        writer.writerow(evaluation_list("d_4_finalprojection_generated.csv", "target.csv", 4, "fpr" ))
+        writer.writerow(evaluation_list("d_5_finalprojection_generated.csv", "target.csv", 5, "fpr"))
+
+        writer.writerow(evaluation_list("100steps_stepbystepprojection_generated.csv", "target.csv", 1, "sbs"))
+        writer.writerow(evaluation_list("d_2_stepbystepprojection_generated.csv", "target.csv", 2, "sbs"))
+        writer.writerow(evaluation_list("d_3_stepbystepprojection_generated.csv", "target.csv", 3, "sbs"))
+        writer.writerow(evaluation_list("d_4_stepbystepprojection_generated.csv", "target.csv", 4, "sbs"))
+        writer.writerow(evaluation_list("d_5_stepbystepprojection_generated.csv", "target.csv", 5, "sbs" ))
+        
+
+evaluation_list_to_csv()
+
+def mean_from_lists(list_position, all_lists):
+    mass_error = 0
+    negativity_violation_mean = 0
+    infeasible_count = 0 
+    mode_balance_right = 0
+    mode_balance_left = 0
+    swd = 0
+    covariance_difference = 0
+    sample_time = 0
+
+    for n in range(15):
+        mass_error += all_lists[n][2]
+        negativity_violation_mean += all_lists[n][3]
+        infeasible_count += all_lists[n][4]
+        mode_balance_right += all_lists[n][5]
+        mode_balance_left += all_lists[n][6]
+        swd += all_lists[n][7]
+        covariance_difference += all_lists[n][8]
+    return mass_error
+
+def mean_from_lists(list_position, all_lists, method):
+    x = 0
+    if method == "unc":
+        additional = 0
+    elif method == "fpr":
+        additional = 5
+    else:
+        additional = 10
+    for n in range(0 + additional, 5 + additional):
+        x += all_lists[n][list_position]
+    x = x / 5
+    return x
+
+
+while True:
+    alt = int(input("Choose an alternative (1: check one seed. 2: check seed mean. 3: exit): "))
+    if alt == 1:
+        seed_alt = int(input("Choose which seed you want to check (1-5): "))
+        if seed_alt == 1:
+            unconstrained_filename = f"100steps_unconstrained_generated.csv"
+            finalprojection_filename = f"100steps_finalprojection_generated.csv"
+            stepbystepprojection_filename = f"100steps_stepbystepprojection_generated.csv"
+            target_filename = f"target.csv" 
+            unconstrained_list = csv_to_list(unconstrained_filename)
+            finalprojection_list = csv_to_list(finalprojection_filename)
+            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
+        elif seed_alt == 2:
+            unconstrained_filename = f"d_2_unconstrained_generated.csv"
+            finalprojection_filename = f"d_2_finalprojection_generated.csv"
+            stepbystepprojection_filename = f"d_2_stepbystepprojection_generated.csv"
+            target_filename = f"target.csv" 
+            unconstrained_list = csv_to_list(unconstrained_filename)
+            finalprojection_list = csv_to_list(finalprojection_filename)
+            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
+        elif seed_alt == 3:
+            unconstrained_filename = f"d_3_unconstrained_generated.csv"
+            finalprojection_filename = f"d_3_finalprojection_generated.csv"
+            stepbystepprojection_filename = f"d_3_stepbystepprojection_generated.csv"
+            target_filename = f"target.csv" 
+            unconstrained_list = csv_to_list(unconstrained_filename)
+            finalprojection_list = csv_to_list(finalprojection_filename)
+            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
+        elif seed_alt == 4:
+            unconstrained_filename = f"d_4_unconstrained_generated.csv"
+            finalprojection_filename = f"d_4_finalprojection_generated.csv"
+            stepbystepprojection_filename = f"d_4_stepbystepprojection_generated.csv"
+            target_filename = f"target.csv" 
+            unconstrained_list = csv_to_list(unconstrained_filename)
+            finalprojection_list = csv_to_list(finalprojection_filename)
+            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
+        elif seed_alt == 5:
+            unconstrained_filename = f"d_5_unconstrained_generated.csv"
+            finalprojection_filename = f"d_5_finalprojection_generated.csv"
+            stepbystepprojection_filename = f"d_5_stepbystepprojection_generated.csv"
+            target_filename = f"target.csv" 
+            unconstrained_list = csv_to_list(unconstrained_filename)
+            finalprojection_list = csv_to_list(finalprojection_filename)
+            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
+        else:
+            print("Not a possible alternative")
+            continue
+
+        print_title("Evaluation of unconstraint generated points:")
+        print("Mass error mean: ", mass_error_mean(unconstrained_list))
+        print("Negativity violation mean: ", negativity_violation_mean(unconstrained_list))
+        print("Feasibility rate: ", feasibility_rate2(unconstrained_list), "out of 10 000 are infeasible.")
+        print("The mode balance is: ", mode_balance(N_DIM, unconstrained_filename))
+        print("Swd_value: ", swd_value(unconstrained_filename, target_filename))
+        print("The covarience matrix difference: ", covariance(unconstrained_filename, target_filename))
+
+        print_title("Evaluation of final projection generated points:")
+        print("Mass error mean: ", mass_error_mean(finalprojection_list))
+        print("Negativity violation mean: ", negativity_violation_mean(finalprojection_list))
+        print("Feasibility rate: ", feasibility_rate2(finalprojection_list), "out of 10 000 are infeasible.")
+        print("The mode balance is: ", mode_balance(N_DIM, finalprojection_filename))
+        print("Swd_value: ", swd_value(finalprojection_filename, target_filename))
+        print("The covarience matrix difference: ", covariance(finalprojection_filename, target_filename))
+
+
+        print_title("Evaluation of step by step generated points:")
+        print("Mass error mean: ", mass_error_mean(stepbystepprojection_list))
+        print("Negativity violation mean: ", negativity_violation_mean(stepbystepprojection_list))
+        print("Feasibility rate: ", feasibility_rate2(stepbystepprojection_list), "out of 10 000 are infeasible.")
+        print("The mode balance is: ", mode_balance(N_DIM, stepbystepprojection_filename))
+        print("Swd_value: ", swd_value(stepbystepprojection_filename, target_filename))
+        print("The covarience matrix difference: ", covariance(stepbystepprojection_filename, target_filename))
+
+        PCA_plot(unconstrained_filename, finalprojection_filename, stepbystepprojection_filename, target_filename)
+
+
+    elif alt == 2:
+        print_title("Seed mean for unconstrained:")
+        print("Mass error mean: ", mean_from_lists(2, all_lists, "unc"))
+        print("Negativity violation mean: ", mean_from_lists(3, all_lists, "unc"))
+        print("Feasibility rate: ",  mean_from_lists(4, all_lists, "unc"), "out of 10 000 are infeasible.")
+        print("The mode balance mean on the right: ",  mean_from_lists(5, all_lists, "unc"))
+        print("The mode balance mean on the right: ",  mean_from_lists(6, all_lists, "unc"))
+        print("Swd_value mean: ", mean_from_lists(7, all_lists, "unc"))
+        print("The covarience matrix difference mean: ", mean_from_lists(8, all_lists, "unc"))
+
+        print_title("Seed mean for final projection:")
+        print("Mass error mean: ", mean_from_lists(2, all_lists, "fpr"))
+        print("Negativity violation mean: ", mean_from_lists(3, all_lists, "fpr"))
+        print("Feasibility rate: ",  mean_from_lists(4, all_lists, "fpr"), "out of 10 000 are infeasible.")
+        print("The mode balance mean on the right: ",  mean_from_lists(5, all_lists, "fpr"))
+        print("The mode balance mean on the right: ",  mean_from_lists(6, all_lists, "fpr"))
+        print("Swd_value mean: ", mean_from_lists(7, all_lists, "fpr"))
+        print("The covarience matrix difference mean: ", mean_from_lists(8, all_lists, "fpr"))
+
+        print_title("Seed mean for step-by-step projection:")
+        print("Mass error mean: ", mean_from_lists(2, all_lists, "sbs"))
+        print("Negativity violation mean: ", mean_from_lists(3, all_lists, "sbs"))
+        print("Feasibility rate: ",  mean_from_lists(4, all_lists, "sbs"), "out of 10 000 are infeasible.")
+        print("The mode balance mean on the right: ",  mean_from_lists(5, all_lists, "sbs"))
+        print("The mode balance mean on the right: ",  mean_from_lists(6, all_lists, "sbs"))
+        print("Swd_value mean: ", mean_from_lists(7, all_lists, "sbs"))
+        print("The covarience matrix difference mean: ", mean_from_lists(8, all_lists, "sbs"))
+
+    elif alt == 3:
+        print("Program closed.")
+        break
+
+    else:
+        print("Not a possible alternative.")
+
+
+
+        
 
 
 # "mass_error_mean": None, "negativity_violation_mean": None, "feasibility_rate2": None, "mode_balance": None, "swd_value": None, "covariance": None,
