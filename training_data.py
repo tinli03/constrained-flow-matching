@@ -7,13 +7,13 @@ from target import target1, target2
 
 
 
-def sample_training_batch(batch_size):
+def sample_training_batch(batch_size, distr="dirichlet"):
     xt_list = []
     target_list = []
     t_list = []
 
     for n in range(batch_size):
-        x0 = np.array(source(10))
+        x0 = np.array(source(10, distr))
         if n % 2 != 0:
             x1 = np.array(target1())
         else:

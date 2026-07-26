@@ -8,10 +8,17 @@ from model import FlowNetwork
 from source import N_DIM # dimension of both source and target vectors
 from utils import to_tensor
 from train import parse_args
+from paths import SEEDS, METHODS, source_path, generated_path, ensure_dirs, checkpoint_path
 
-args = parse_args()
-model = FlowNetwork(args, N_DIM)
-model.load_state_dict(torch.load(args.checkpoint_path))
+
+def load_model(distr="dirichlet", checkpoint=None):
+    # Modellen hämtas alltid utifrån fördelningen, så dirichletmodellen aldrig
+    # av misstag körs på gaussiska källpunkter (det kraschar inte, det blir bara fel).
+    args = parse_args()
+    model = FlowNetwork(args, N_DIM)
+    model.load_state_dict(torch.load(checkpoint or checkpoint_path(distr)))
+    model.eval()
+    return model
 
 
 ### -----------------------------------------------
@@ -47,8 +54,7 @@ def csv_to_tensor(filename): # läser av en csv och gör en tensor för att anv�
     return source_tensor
 
 
-def list_to_csv(list_of_all, method_name, batch_name): # ger ut i CSV alla slutpunkter från data.csv
-    filename = f"{batch_name}_{method_name}_generated.csv"
+def list_to_csv(list_of_all, filename): # ger ut i CSV alla slutpunkter, filename kommer från paths.generated_path
     with open(filename, "w", newline="") as file:
         writer = csv.writer(file)
         for n in range(len(list_of_all)):
@@ -127,29 +133,28 @@ def sample_stepbystepproj(model, n_steps, filename): # input tensor, output list
     
 ### -----------------------------------------------
 
-# BATCH 1
-
-#filename = "data.csv" # created with create_csv_source(10 000)
-#filename = "d_batch2_dat.csv"
-#batch_name = "d_2"
-#filename = "d_batch5_dat.csv"
-#batch_name = "d_5"
+SAMPLERS = {
+    "unc": sample_unconstrained,
+    "fpr": sample_finalproj,
+    "sbs": sample_stepbystepproj,
+}
 
 number_of_steps = 100
 
-#generated = sample_unconstrained(model, number_of_steps, filename)[0]
-#list_to_csv(generated, "unconstrained", batch_name)
-#final_proj = sample_finalproj(model, number_of_steps, filename)[0]
-#list_to_csv(final_proj, "finalprojection", batch_name)
-#stepbystep_proj = sample_stepbystepproj(model, number_of_steps, filename)[0]
-#list_to_csv(stepbystep_proj, "stepbystepprojection", batch_name)
+
+def run_sweep(seeds=SEEDS, methods=METHODS, n_steps=number_of_steps, distr="dirichlet", model=None):
+    # Genererar alla seeds x metoder. Filnamnen kommer alltid från paths.py.
+    ensure_dirs()
+    if model is None:
+        model = load_model(distr)
+    for seed in seeds:
+        src = source_path(seed, distr)
+        for method in methods:
+            out = generated_path(seed, method, distr)
+            points = SAMPLERS[method](model, n_steps, src)[0]
+            list_to_csv(points, out)
+            print(f"wrote {out}")
 
 
-#generated, sampling_time_un = sample_unconstrained(model, number_of_steps, filename)
-
-#generated, sampling_time_final, projection_time_final = sample_finalproj(model, number_of_steps, filename)
-
-#samples, sampling_time_sbs, projection_time_sbs = sample_stepbystepproj(model, number_of_steps, filename)
-
-# BATCH 2
-
+if __name__ == "__main__":
+    run_sweep(distr=parse_args().distr)

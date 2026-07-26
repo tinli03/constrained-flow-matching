@@ -7,8 +7,9 @@ import os
 
 from training_data import sample_training_batch
 from model import FlowNetwork
-from source import N_DIM 
+from source import N_DIM
 from utils import to_tensor
+from paths import DISTR_TAG, checkpoint_path, loss_curve_path
 
 
 
@@ -21,11 +22,17 @@ def parse_args():
     parser.add_argument("--hidden_width", type=int, default=128)
     parser.add_argument("--val_size", type=int, default=2000)
     parser.add_argument("--val_every", type=int, default=500)
-    parser.add_argument("--checkpoint_path", type=str, default="checkpoints/model.pt")
+    parser.add_argument("--checkpoint_path", type=str, default=None)
     parser.add_argument("--rmseed", type=int, default=0)
-    return parser.parse_args()
+    parser.add_argument("--distr", type=str, default="dirichlet", choices=list(DISTR_TAG))
+    args = parser.parse_args()
+    # Checkpointen följer fördelningen om den inte anges explicit. Görs här så att
+    # både train.py och generate_samples.py får samma default.
+    if args.checkpoint_path is None:
+        args.checkpoint_path = checkpoint_path(args.distr)
+    return args
 
-def plot_loss(loss_iters, loss_values, val_iters, val_losses):
+def plot_loss(loss_iters, loss_values, val_iters, val_losses, distr="dirichlet"):
     plt.figure()
     plt.plot(loss_iters, loss_values, label="training loss")
     plt.plot(val_iters, val_losses, label="validation loss")
@@ -33,7 +40,7 @@ def plot_loss(loss_iters, loss_values, val_iters, val_losses):
     plt.ylabel("loss")
     plt.title("Training loss")
     plt.legend()
-    plt.savefig("loss_curve.png")
+    plt.savefig(loss_curve_path(distr))
     plt.show()
 
 def train(args, model, optimizer, val_xt, val_t, val_target):
@@ -44,7 +51,7 @@ def train(args, model, optimizer, val_xt, val_t, val_target):
     best_val_loss = float('inf')   
 
     for i in range(1, args.n_iters + 1):
-        xt, t, target = sample_training_batch(args.batch_size)  
+        xt, t, target = sample_training_batch(args.batch_size, args.distr)
 
         xt = to_tensor(xt)
         t = to_tensor(t)
@@ -78,7 +85,7 @@ def train(args, model, optimizer, val_xt, val_t, val_target):
                 torch.save(model.state_dict(), args.checkpoint_path)
                 print(f"  new best val_loss saved checkpoint model")     
 
-    plot_loss(loss_iters, loss_values, val_iters, val_losses)
+    plot_loss(loss_iters, loss_values, val_iters, val_losses, args.distr)
     
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -91,8 +98,8 @@ if __name__ == "__main__":
 
     args = parse_args()
 
-    np.random.seed(12345)                             
-    val_xt, val_t, val_target = sample_training_batch(args.val_size)
+    np.random.seed(12345)
+    val_xt, val_t, val_target = sample_training_batch(args.val_size, args.distr)
     val_xt = to_tensor(val_xt)
     val_t = to_tensor(val_t)
     val_target = to_tensor(val_target)

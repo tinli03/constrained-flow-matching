@@ -9,6 +9,7 @@ from sklearn.decomposition import PCA
 #from generate_samples import csv_to_list
 # sampling_time_un, sampling_time_final, projection_time_final, sampling_time_sbs, projection_time_sbs, number_of_steps
 from source import N_DIM
+from paths import SEEDS, METHODS, DISTR_TAG, TARGET_PATH, generated_path, row_index, has_generated
 
 
 ### -----------------------------------------------
@@ -35,7 +36,6 @@ def mass_error_mean(list):
         x += mass_error(list[n])
     mass_error_mean = x / len(list)
     return mass_error_mean
-
 
 # hur mycket negativa värden och dess summan i en vektor
 def negativity_violation(u): # vill ha en lista
@@ -191,178 +191,108 @@ def print_title(title):
     print(title.upper())
     print("=" * 60)
 
-all_lists = []
 def evaluation_list(generated_filename, target_filename, batch_number, method):
     one_list = [batch_number, method, mass_error_mean(csv_to_list(generated_filename)), negativity_violation_mean(csv_to_list(generated_filename)), feasibility_rate2(csv_to_list(generated_filename)), mode_balance(N_DIM, generated_filename)[0], mode_balance(N_DIM, generated_filename)[1], swd_value(generated_filename, target_filename), covariance(generated_filename, target_filename)]
-    all_lists.append(one_list)
-    
+
     return one_list
 
-def evaluation_list_to_csv(): # ger ut i CSV alla slutpunkter från data.csv
+
+TABLES = {} # distr -> lista med en rad per (metod, seed)
+
+def get_table(distr):
+    # Räknas ut först när fördelningen faktiskt efterfrågas, så en saknad
+    # gaussisk körning inte kraschar programmet vid start.
+    if distr not in TABLES:
+        # Method-major ordering: paths.row_index() förutsätter exakt den här ordningen.
+        TABLES[distr] = [
+            evaluation_list(generated_path(seed, method, distr), TARGET_PATH, seed, method)
+            for method in METHODS
+            for seed in SEEDS
+        ]
+    return TABLES[distr]
+
+
+def available_distrs():
+    return [distr for distr in DISTR_TAG if has_generated(distr)]
+
+
+def evaluation_list_to_csv(): # ger ut i CSV alla mätvärden för varje fördelning, seed och metod
     filename = f"evaluation.csv"
     with open(filename, "w", newline="") as file:
         writer = csv.writer(file)
 
-        writer.writerow(["batch","method","mass_error_mean","negativity_violation_mean","infeasible_count","mode_balance_right","mode_balance_left","swd","covariance_difference"])
+        writer.writerow(["distr","batch","method","mass_error_mean","negativity_violation_mean","infeasible_count","mode_balance_right","mode_balance_left","swd","covariance_difference"])
 
-        writer.writerow(evaluation_list("100steps_unconstrained_generated.csv", "target.csv", 1, "unc"))
-        writer.writerow(evaluation_list("d_2_unconstrained_generated.csv", "target.csv", 2, "unc" ))
-        writer.writerow(evaluation_list("d_3_unconstrained_generated.csv", "target.csv", 3, "unc" ))
-        writer.writerow(evaluation_list("d_4_unconstrained_generated.csv", "target.csv", 4, "unc" ))
-        writer.writerow(evaluation_list("d_5_unconstrained_generated.csv", "target.csv", 5, "unc" ))
-
-        writer.writerow(evaluation_list("100steps_finalprojection_generated.csv", "target.csv", 1, "fpr"))
-        writer.writerow(evaluation_list("d_2_finalprojection_generated.csv", "target.csv", 2, "fpr" ))
-        writer.writerow(evaluation_list("d_3_finalprojection_generated.csv", "target.csv", 3, "fpr"))
-        writer.writerow(evaluation_list("d_4_finalprojection_generated.csv", "target.csv", 4, "fpr" ))
-        writer.writerow(evaluation_list("d_5_finalprojection_generated.csv", "target.csv", 5, "fpr"))
-
-        writer.writerow(evaluation_list("100steps_stepbystepprojection_generated.csv", "target.csv", 1, "sbs"))
-        writer.writerow(evaluation_list("d_2_stepbystepprojection_generated.csv", "target.csv", 2, "sbs"))
-        writer.writerow(evaluation_list("d_3_stepbystepprojection_generated.csv", "target.csv", 3, "sbs"))
-        writer.writerow(evaluation_list("d_4_stepbystepprojection_generated.csv", "target.csv", 4, "sbs"))
-        writer.writerow(evaluation_list("d_5_stepbystepprojection_generated.csv", "target.csv", 5, "sbs" ))
-        
+        for distr in available_distrs():
+            for row in get_table(distr):
+                writer.writerow([distr] + row)
 
 evaluation_list_to_csv()
 
-def mean_from_lists(list_position, all_lists):
-    mass_error = 0
-    negativity_violation_mean = 0
-    infeasible_count = 0 
-    mode_balance_right = 0
-    mode_balance_left = 0
-    swd = 0
-    covariance_difference = 0
-    sample_time = 0
-
-    for n in range(15):
-        mass_error += all_lists[n][2]
-        negativity_violation_mean += all_lists[n][3]
-        infeasible_count += all_lists[n][4]
-        mode_balance_right += all_lists[n][5]
-        mode_balance_left += all_lists[n][6]
-        swd += all_lists[n][7]
-        covariance_difference += all_lists[n][8]
-    return mass_error
+# Kolumnposition i all_lists -> etikett
+METRIC_LABELS = [
+    (2, "Mass error mean: "),
+    (3, "Negativity violation mean: "),
+    (4, "Feasibility rate: "),
+    (5, "The mode balance on the right: "),
+    (6, "The mode balance on the left: "),
+    (7, "Swd_value: "),
+    (8, "The covarience matrix difference: "),
+]
 
 def mean_from_lists(list_position, all_lists, method):
-    x = 0
-    if method == "unc":
-        additional = 0
-    elif method == "fpr":
-        additional = 5
-    else:
-        additional = 10
-    for n in range(0 + additional, 5 + additional):
-        x += all_lists[n][list_position]
-    x = x / 5
-    return x
+    start = list(METHODS).index(method) * len(SEEDS)
+    rows = all_lists[start : start + len(SEEDS)]
+    return sum(row[list_position] for row in rows) / len(rows)
+
+
+def ask_distr():
+    # Erbjuder bara fördelningar som har en komplett körning på disk.
+    options = available_distrs()
+    if not options:
+        print("No generated runs found. Run generate_samples.py first.")
+        return None
+    if len(options) == 1:
+        return options[0]
+    prompt = " ".join(f"{n}: {distr}." for n, distr in enumerate(options, start=1))
+    choice = int(input(f"Choose distribution ({prompt}): "))
+    if choice not in range(1, len(options) + 1):
+        print("Not a possible alternative")
+        return None
+    return options[choice - 1]
 
 
 while True:
     alt = int(input("Choose an alternative (1: check one seed. 2: check seed mean. 3: exit): "))
     if alt == 1:
-        seed_alt = int(input("Choose which seed you want to check (1-5): "))
-        if seed_alt == 1:
-            unconstrained_filename = f"100steps_unconstrained_generated.csv"
-            finalprojection_filename = f"100steps_finalprojection_generated.csv"
-            stepbystepprojection_filename = f"100steps_stepbystepprojection_generated.csv"
-            target_filename = f"target.csv" 
-            unconstrained_list = csv_to_list(unconstrained_filename)
-            finalprojection_list = csv_to_list(finalprojection_filename)
-            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
-        elif seed_alt == 2:
-            unconstrained_filename = f"d_2_unconstrained_generated.csv"
-            finalprojection_filename = f"d_2_finalprojection_generated.csv"
-            stepbystepprojection_filename = f"d_2_stepbystepprojection_generated.csv"
-            target_filename = f"target.csv" 
-            unconstrained_list = csv_to_list(unconstrained_filename)
-            finalprojection_list = csv_to_list(finalprojection_filename)
-            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
-        elif seed_alt == 3:
-            unconstrained_filename = f"d_3_unconstrained_generated.csv"
-            finalprojection_filename = f"d_3_finalprojection_generated.csv"
-            stepbystepprojection_filename = f"d_3_stepbystepprojection_generated.csv"
-            target_filename = f"target.csv" 
-            unconstrained_list = csv_to_list(unconstrained_filename)
-            finalprojection_list = csv_to_list(finalprojection_filename)
-            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
-        elif seed_alt == 4:
-            unconstrained_filename = f"d_4_unconstrained_generated.csv"
-            finalprojection_filename = f"d_4_finalprojection_generated.csv"
-            stepbystepprojection_filename = f"d_4_stepbystepprojection_generated.csv"
-            target_filename = f"target.csv" 
-            unconstrained_list = csv_to_list(unconstrained_filename)
-            finalprojection_list = csv_to_list(finalprojection_filename)
-            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
-        elif seed_alt == 5:
-            unconstrained_filename = f"d_5_unconstrained_generated.csv"
-            finalprojection_filename = f"d_5_finalprojection_generated.csv"
-            stepbystepprojection_filename = f"d_5_stepbystepprojection_generated.csv"
-            target_filename = f"target.csv" 
-            unconstrained_list = csv_to_list(unconstrained_filename)
-            finalprojection_list = csv_to_list(finalprojection_filename)
-            stepbystepprojection_list = csv_to_list(stepbystepprojection_filename)
-        else:
+        distr = ask_distr()
+        if distr is None:
+            continue
+        seed_alt = int(input(f"Choose which seed you want to check ({SEEDS[0]}-{SEEDS[-1]}): "))
+        if seed_alt not in SEEDS:
             print("Not a possible alternative")
             continue
 
-        print_title("Evaluation of unconstraint generated points:")
-        print("Mass error mean: ", mass_error_mean(unconstrained_list))
-        print("Negativity violation mean: ", negativity_violation_mean(unconstrained_list))
-        print("Feasibility rate: ", feasibility_rate2(unconstrained_list), "out of 10 000 are infeasible.")
-        print("The mode balance is: ", mode_balance(N_DIM, unconstrained_filename))
-        print("Swd_value: ", swd_value(unconstrained_filename, target_filename))
-        print("The covarience matrix difference: ", covariance(unconstrained_filename, target_filename))
+        # Alla mätvärden är redan uträknade av get_table(), så vi slår upp dem.
+        table = get_table(distr)
+        for method, (_, label) in METHODS.items():
+            row = table[row_index(seed_alt, method)]
+            print_title(f"{distr}, seed {seed_alt} - evaluation of {label}:")
+            for position, text in METRIC_LABELS:
+                print(text, row[position])
 
-        print_title("Evaluation of final projection generated points:")
-        print("Mass error mean: ", mass_error_mean(finalprojection_list))
-        print("Negativity violation mean: ", negativity_violation_mean(finalprojection_list))
-        print("Feasibility rate: ", feasibility_rate2(finalprojection_list), "out of 10 000 are infeasible.")
-        print("The mode balance is: ", mode_balance(N_DIM, finalprojection_filename))
-        print("Swd_value: ", swd_value(finalprojection_filename, target_filename))
-        print("The covarience matrix difference: ", covariance(finalprojection_filename, target_filename))
-
-
-        print_title("Evaluation of step by step generated points:")
-        print("Mass error mean: ", mass_error_mean(stepbystepprojection_list))
-        print("Negativity violation mean: ", negativity_violation_mean(stepbystepprojection_list))
-        print("Feasibility rate: ", feasibility_rate2(stepbystepprojection_list), "out of 10 000 are infeasible.")
-        print("The mode balance is: ", mode_balance(N_DIM, stepbystepprojection_filename))
-        print("Swd_value: ", swd_value(stepbystepprojection_filename, target_filename))
-        print("The covarience matrix difference: ", covariance(stepbystepprojection_filename, target_filename))
-
-        PCA_plot(unconstrained_filename, finalprojection_filename, stepbystepprojection_filename, target_filename)
+        PCA_plot(*(generated_path(seed_alt, method, distr) for method in METHODS), TARGET_PATH)
 
 
     elif alt == 2:
-        print_title("Seed mean for unconstrained:")
-        print("Mass error mean: ", mean_from_lists(2, all_lists, "unc"))
-        print("Negativity violation mean: ", mean_from_lists(3, all_lists, "unc"))
-        print("Feasibility rate: ",  mean_from_lists(4, all_lists, "unc"), "out of 10 000 are infeasible.")
-        print("The mode balance mean on the right: ",  mean_from_lists(5, all_lists, "unc"))
-        print("The mode balance mean on the right: ",  mean_from_lists(6, all_lists, "unc"))
-        print("Swd_value mean: ", mean_from_lists(7, all_lists, "unc"))
-        print("The covarience matrix difference mean: ", mean_from_lists(8, all_lists, "unc"))
-
-        print_title("Seed mean for final projection:")
-        print("Mass error mean: ", mean_from_lists(2, all_lists, "fpr"))
-        print("Negativity violation mean: ", mean_from_lists(3, all_lists, "fpr"))
-        print("Feasibility rate: ",  mean_from_lists(4, all_lists, "fpr"), "out of 10 000 are infeasible.")
-        print("The mode balance mean on the right: ",  mean_from_lists(5, all_lists, "fpr"))
-        print("The mode balance mean on the right: ",  mean_from_lists(6, all_lists, "fpr"))
-        print("Swd_value mean: ", mean_from_lists(7, all_lists, "fpr"))
-        print("The covarience matrix difference mean: ", mean_from_lists(8, all_lists, "fpr"))
-
-        print_title("Seed mean for step-by-step projection:")
-        print("Mass error mean: ", mean_from_lists(2, all_lists, "sbs"))
-        print("Negativity violation mean: ", mean_from_lists(3, all_lists, "sbs"))
-        print("Feasibility rate: ",  mean_from_lists(4, all_lists, "sbs"), "out of 10 000 are infeasible.")
-        print("The mode balance mean on the right: ",  mean_from_lists(5, all_lists, "sbs"))
-        print("The mode balance mean on the right: ",  mean_from_lists(6, all_lists, "sbs"))
-        print("Swd_value mean: ", mean_from_lists(7, all_lists, "sbs"))
-        print("The covarience matrix difference mean: ", mean_from_lists(8, all_lists, "sbs"))
+        distr = ask_distr()
+        if distr is None:
+            continue
+        table = get_table(distr)
+        for method, (_, label) in METHODS.items():
+            print_title(f"{distr} - seed mean for {label}:")
+            for position, text in METRIC_LABELS:
+                print(text, mean_from_lists(position, table, method))
 
     elif alt == 3:
         print("Program closed.")
